@@ -1,5 +1,5 @@
-#Author: Ryo Ichimiya, T. Akagi
-# Integration of new Steerer power supply: 08/05/2018
+# Inventory V1.2 reference subset. Original record bodies preserved.
+# Not a standalone IOC; see reports/pv_selection.md.
 
 record(stringin, "LEBT:STV02_PS:idn")
 {
@@ -50,4 +50,3 @@ record(bo, "LEBT:STV02_PS:OFF")
     field(HIGH, "1")
     field(OUT, "@PBZ20_proto.db off PS-STV02")
 }
-

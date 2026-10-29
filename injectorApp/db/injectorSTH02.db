@@ -1,4 +1,5 @@
-#Author: Antonio Miguel Lopez
+# Inventory V1.2 reference subset. Original record bodies preserved.
+# Not a standalone IOC; see reports/pv_selection.md.
 
 record(stringin, "LEBT:STH02_PS:idn")
 {
@@ -69,5 +70,3 @@ record(bo, "LEBT:STH02_PS:OFF")
     field(HIGH, "1")
     field(OUT, "@MatsusadaPRK_proto.db off PS-STH02")
 }
-
-

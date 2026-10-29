@@ -1,0 +1,195 @@
+{
+  "source_repository": "andimec/topIFMIF_INJ",
+  "source_commit": "3586551ce2eaede262d5cf584ab88d2d940c3a83",
+  "source_tree": "a822e3273f4319177f09b553e863015626ae196f",
+  "inventory_repository": "andimec/Injector_LIPAc_OTP",
+  "inventory_ref": "architecture/v0.1",
+  "inventory_path": "config/pv_registry_v1_2.json",
+  "inventory_blob_sha": "4a3c7acd10cdea9eda8a1c272aa2019e71128e0c",
+  "source_files": [
+    {
+      "path": "Icv108App/db/Icv108.db",
+      "sha": "8685d7136dbf885c8e1ec6296a5871a07fc3ac2f"
+    },
+    {
+      "path": "emitApp/db/emitIcv150.db",
+      "sha": "eb2aa6ec9f0ef4044315b8017fcc23ec5674b76b"
+    },
+    {
+      "path": "emitApp/db/emitIcv196.db",
+      "sha": "0d13ad2f831f0ddd89a33fc9740b6a3dc1e2e9a3"
+    },
+    {
+      "path": "emitApp/db/emitIcv714.db",
+      "sha": "729c0d90ae211565eebfb458a7013e5fa3a86335"
+    },
+    {
+      "path": "emitApp/db/emitMotor.db",
+      "sha": "7c9f3e7d45f054364478a4e7c334a75bd3028ce1"
+    },
+    {
+      "path": "emitApp/db/emitProcess.db",
+      "sha": "2d3c0ae8ad9b7fbe9ef5bb4480d43b0a585418f0"
+    },
+    {
+      "path": "emitApp/db/emitServo.db",
+      "sha": "21ec6f561452d248b75a424f5d6e7fbd8ccffe65"
+    },
+    {
+      "path": "emitApp/db/emitServoProto.db",
+      "sha": "1c725ab4fcbd4b7b1c710ac19f60f2c8496e360f"
+    },
+    {
+      "path": "emitApp/db/emitVxStats.db",
+      "sha": "7e979d88b35cd10a83ae6cc6c875e88635705449"
+    },
+    {
+      "path": "emitApp/db/extraPV.db",
+      "sha": "edbf3b83263572da47044364a697f6ae585e855a"
+    },
+    {
+      "path": "emitApp/db/injectorBS_Calorimetry.db",
+      "sha": "860fb1c8a7111ef7b697ceb64922ba6053558a5b"
+    },
+    {
+      "path": "emitApp/db/injectorFC_Calorimetry.db",
+      "sha": "c8c01b76994e293f53413f4450f58feb681506e1"
+    },
+    {
+      "path": "emitApp/db/injectorGE_temp.db",
+      "sha": "7742b661a24ca96fc4b141911ff57808629f0290"
+    },
+    {
+      "path": "emitApp/db/injectorHV_Spark.db",
+      "sha": "8564e2e3e9bc48a378015a91db2ec4c72d98ef70"
+    },
+    {
+      "path": "emitApp/db/injectorIC_Calorimetry.db",
+      "sha": "28c91a6cff60acaddc6fb4520e3b152323d37d49"
+    },
+    {
+      "path": "facqApp/db/facqDiagIcv108.db",
+      "sha": "febf99cad8f8b4617696f64706880f935842aff7"
+    },
+    {
+      "path": "injectorApp/db/MatsusadaPRK_proto.db",
+      "sha": "d7546a5d8560584a48999de0c0aa369cc363f58e"
+    },
+    {
+      "path": "injectorApp/db/PBZ20_proto.db",
+      "sha": "50a60489988b2454e10a2f4fc645ffc2fa01f191"
+    },
+    {
+      "path": "injectorApp/db/injectorActions_auto.db",
+      "sha": "030022af9314291e9d097e50089c33e2fcfe641b"
+    },
+    {
+      "path": "injectorApp/db/injectorCOIL01.db",
+      "sha": "e4f3c67d2fca56fd6d017312a1cdaa94817ad872"
+    },
+    {
+      "path": "injectorApp/db/injectorCOIL02.db",
+      "sha": "10a68493015faf7fb3d476dbab487ae90d40519b"
+    },
+    {
+      "path": "injectorApp/db/injectorFGA.db",
+      "sha": "54ec9bf56ce3653bb944330b4dc657f4b20b8b60"
+    },
+    {
+      "path": "injectorApp/db/injectorFUG120kV_proto.db",
+      "sha": "dc0656b6747a90d80c962f014a35e43e7e30f234"
+    },
+    {
+      "path": "injectorApp/db/injectorFUG_120kV.db",
+      "sha": "fc6fa2338c7048e35b62df95ca7ddc3e2c3416d2"
+    },
+    {
+      "path": "injectorApp/db/injectorIE_PS.db",
+      "sha": "e57448624cb5c0e11beaec5060afbc01d15a1b3d"
+    },
+    {
+      "path": "injectorApp/db/injectorInit_MKS_LEBT.db",
+      "sha": "7bbaff5776332decc9a074f31a3eaea345e88117"
+    },
+    {
+      "path": "injectorApp/db/injectorInit_MKS_SRC.db",
+      "sha": "8b5464ad12f7e6c76c69f9ecc75804de68c31061"
+    },
+    {
+      "path": "injectorApp/db/injectorMKS_LEBT.db",
+      "sha": "bf52957458854287b01be7c84893fb980fa32da3"
+    },
+    {
+      "path": "injectorApp/db/injectorMKS_SRC_D2.db",
+      "sha": "f638d723de58866ae8bdf63b0839e8b9f7a78671"
+    },
+    {
+      "path": "injectorApp/db/injectorMKS_SRC_H2.db",
+      "sha": "c76c7349c5ebcc5c975f5a3e931391a8b50db699"
+    },
+    {
+      "path": "injectorApp/db/injectorMKS_proto.db",
+      "sha": "1fdf7ba3f795d5c660d981d8748dcb8c52eb1279"
+    },
+    {
+      "path": "injectorApp/db/injectorModbus_RF.db",
+      "sha": "156fad503f10413a55b183c1d6642abbe30c3f80"
+    },
+    {
+      "path": "injectorApp/db/injectorRCPS.db",
+      "sha": "bfb972f341192c42dcad70a2ee18226e95e119c9"
+    },
+    {
+      "path": "injectorApp/db/injectorRPS.db",
+      "sha": "9d2ee44786e573470ed5601d8a1bd9b424520185"
+    },
+    {
+      "path": "injectorApp/db/injectorSOL01.db",
+      "sha": "a8e269137c0e3b3a03972c44eae1998179fcf780"
+    },
+    {
+      "path": "injectorApp/db/injectorSOL02.db",
+      "sha": "170f04d5dcd1d79873c390e00b4080cadda54630"
+    },
+    {
+      "path": "injectorApp/db/injectorSRC_RF.db",
+      "sha": "0a30f279dffadc0d7d20cfae84fdb4b14de935e9"
+    },
+    {
+      "path": "injectorApp/db/injectorSTH01.db",
+      "sha": "9d8a2ab6ec9c2e087884b58a773cc81113147e40"
+    },
+    {
+      "path": "injectorApp/db/injectorSTH02.db",
+      "sha": "570266038d25f3eaceb4be6c9b071a66b8f034f4"
+    },
+    {
+      "path": "injectorApp/db/injectorSTV01.db",
+      "sha": "b461d6fabc2b9b38e83b7aab7887865e3aa4f040"
+    },
+    {
+      "path": "injectorApp/db/injectorSTV02.db",
+      "sha": "6fac34ebe25ade23cca799ba0f89af595a994e66"
+    },
+    {
+      "path": "injectorApp/db/injectorTiming.db",
+      "sha": "2e597b0f1aafba77ba88919b5f72a0abc042db5b"
+    },
+    {
+      "path": "plcInjectorApp/db/plcInjector_Input.db",
+      "sha": "57ecf261e87b8fc35380a15f12411d72bfbe0d25"
+    },
+    {
+      "path": "plcInjectorApp/db/plcInjector_Output.db",
+      "sha": "2c4125981197ea05a09ce719f9a04dd7b2f7fa5f"
+    },
+    {
+      "path": "plcInjectorApp/db/plcInjector_Status.db",
+      "sha": "5547f5d26e2d7f8c6efe07dd4081ed1a7366dab5"
+    },
+    {
+      "path": "plcInjectorApp/db/plcInjector_StatusForOpi.db",
+      "sha": "f1e109dde5ad8cb7e54bd4a06935a36d33ed75a5"
+    }
+  ]
+}

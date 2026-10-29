@@ -1,4 +1,6 @@
-# Added by Patricia
+# Inventory V1.2 reference subset. Original record bodies preserved.
+# Not a standalone IOC; see reports/pv_selection.md.
+
 record(ao, SRC:TIM:Trep) {
   field(DESC, "Repetition")
   field(DTYP, "Soft Channel")
@@ -11,24 +13,3 @@ record(ao, SRC:TIM:Trep) {
   field(PREC, "0")
   field(EGU, "ms")
 }
-
-record(bi, "SRC:SVL:D2CloseStat") {
-  field(DESC, "Status PP (Simulated)") #og: "Status PP"
-  field(SCAN, "1 second") #og: I/O Intro
-  field(PINI, "NO")
-  field(DTYP, "Soft Channel") #og: "S7plc" + INP field
-  field(ONAM, "Closed") #og: "Close"
-  field(ZNAM, "Open") 
-  field(VAL, "1") # Default: Closed
-}
-
-record(bi, "SRC:SVL:H2CloseStat") { 
-  field(DESC, "Status PP (Simulated)") #og: "Status PP"
-  field(SCAN, "1 second") #og: I/O Intro
-  field(PINI, "NO")
-  field(DTYP, "Soft Channel") #og: "S7plc" + INP field
-  field(ONAM, "Closed") #og: "Close"
-  field(ZNAM, "Open") 
-  field(VAL, "1") # Default: Closed
-}
-
