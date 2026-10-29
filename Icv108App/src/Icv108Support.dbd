@@ -1,0 +1,40 @@
+# C.E.A. IRFU/SIS/LDII
+#
+# @(#) $Id: Icv108Support.dbd 4477 2016-01-21 13:40:19Z denis $
+#
+# Icv108Support.dbd
+#
+# This database definition file contains all the definitions
+# provided by the support application module Icv108.
+# 
+# It is installed by Makefile in <top>/dbd and can be included
+# by dbd files.
+# 
+
+# Add new record types
+#include "xxxRecord.dbd"
+
+
+# Add new devices
+#device(<record type>,<link type>,<dset name>,"<choice string>")
+device(bo,VME_IO,devBoIcv108,"ICV108")
+device(bi,VME_IO,devBiIcv108,"ICV108")
+device(ai,VME_IO,devAiIcv108,"ICV108")
+device(mbbo,VME_IO,devMbboIcv108,"ICV108")
+#device(ao,INST_IO,devAoIcv108,"ICV108")
+device(ao,VME_IO,devAoIcv108,"ICV108")
+device(waveform,VME_IO,devWfIcv108,"ICV108")
+device(stringout,VME_IO,devStringoutIcv108,"ICV108")
+# Add new drivers
+#driver(<drvet name>)
+
+# Add new SNL programs or functions to be invoked from iocsh
+#registrar(<function name>Registrar)
+
+# driver support
+
+# Add new functions for sub or gensub records
+#function(<function name>)
+
+# Add new variables
+#variable(<variable name>)

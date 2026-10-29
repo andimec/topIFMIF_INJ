@@ -1,0 +1,27 @@
+# C.E.A. IRFU/SIS/LDII
+#
+# @(#) $Id: facqInclude.dbd,v 1.5 2012/08/08 13:07:45 cmsmgr Exp $
+#
+# facqInclude.dbd
+#
+# This expandable database definition file includes all the definitions
+# used or provided by the support application module facq.
+#
+# It is installed by Makefile in <top>/dbd and can be included
+# by other dbd files.
+#
+# It is also expanded by Makefile as file facq.dbd in <top>/dbd. 
+# VDCT can load facq.dbd to edit the databases of the module facq.
+# 
+
+# EPICS Base
+include "base.dbd"
+
+# Definitions provided by this support module
+include "facqSupport.dbd"
+
+# Add other support modules used by facq
+#include "<support name>.dbd"
+#include "..."
+include "Icv108.dbd"
+

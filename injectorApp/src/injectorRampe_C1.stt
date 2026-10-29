@@ -1,0 +1,61 @@
+/*
+#  C.E.A. IRFU/SIS/LDISC
+#
+# 
+#
+*/
+/*
+*-----------------------------------------------------------------------
+*   IFMIF/EVEDA Injecteur:
+*   snl_Rampe_C1 : programme SNL pour la gestion de la commande de 
+*            rampe de C1_PS
+
+*-----------------------------------------------------------------------
+*/
+
+/* program snl_Rampe_C1*/
+program injectorRampe_C1
+
+short OK_Rampe;
+assign OK_Rampe to "SRC:COIL01_PS:PretRampe";
+monitor OK_Rampe;
+
+
+short Envoi_Rampe;
+assign Envoi_Rampe to "SRC:COIL01_PS:RampeCmd";
+monitor Envoi_Rampe;
+
+
+ss ss1
+{
+	
+        state connected {
+             when ( (delay(2.0)) && (pvConnectCount() == pvChannelCount()) ) {
+              printf("SNL_Rampe_C1 :entree programme - connexions etablies \n");
+             
+             } state Debut
+       }
+
+
+	    	 
+	
+	state Debut
+		   {
+		      when ( (delay(1)) && ((OK_Rampe) == 1)) {
+                         printf("ENVOI Start Rampe C1; \n");
+                        Envoi_Rampe = 1;
+                        pvPut(Envoi_Rampe);
+                        OK_Rampe = 0;
+                        pvPut(OK_Rampe);		
+                      } state suite_1
+      }
+	
+	state suite_1
+		{
+	    	  when (delay(1)) {
+                        printf("Fin sequence Envoi Start Rampe C1; \n");
+                        Envoi_Rampe = 0;
+                        pvPut(Envoi_Rampe);
+                  } state Debut
+     }
+}

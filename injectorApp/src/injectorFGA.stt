@@ -1,0 +1,269 @@
+/*
+#  C.E.A. IRFU/SIS/LDISC
+#
+# 
+#
+*/
+/*
+*-----------------------------------------------------------------------
+*   IFMIF/EVEDA Injecteur:
+*   snl_FGA : programme SNL pour la gestion de la rampe 
+*            de l'alimentation FGA03_PS
+*
+*-----------------------------------------------------------------------
+*/
+
+/*   program snl_FGA  */
+
+program injectorFGA
+
+string dialog;
+assign dialog to "LEBT:FGA:Dialog";
+
+
+short start_Mesure;
+assign start_Mesure to "LEBT:FGA:StartMes";
+monitor start_Mesure;
+
+short stop_Mesure;
+assign stop_Mesure to "LEBT:FGA:StopMes";
+monitor stop_Mesure;
+
+short start_Enreg;
+assign start_Enreg to "LEBT:FGA:StartEnreg";
+monitor start_Enreg;
+
+
+
+double Delta_V;
+assign Delta_V to "LEBT:FGA:CalculDV";
+monitor Delta_V; 
+
+short Npas;
+assign Npas to "LEBT:FGA_PS3:Npas";
+monitor Npas;
+
+double Vdeb;
+assign Vdeb to "LEBT:FGA_PS3:Vdeb";
+monitor Vdeb;
+
+double Vfin;
+assign Vfin to "LEBT:FGA_PS3:Vfin";
+monitor Vfin;
+
+double Vgrid;
+assign  Vgrid to "LEBT:FGA_PS3:Vgrid";
+monitor Vgrid;
+
+double VMes;
+assign  VMes to "LEBT:FGA_PS3:VRdbk";
+monitor VMes;
+
+
+double VG3;
+assign  VG3 to "LEBT:FGA_PS3:VSet";
+
+
+double Energie;
+assign Energie to "LEBT:HV_PS:HTCmd";
+monitor Energie;
+
+double Ibeam;
+assign Ibeam to "LEBT:BS:I";
+monitor Ibeam;
+
+short Nombre_pas;
+double Vgrid03;
+double DV;
+double Mes_VG3;
+/*------------------------------------------------*/
+
+
+
+%%#include <stdio.h>
+%%#include <string.h>
+%%#include <math.h>
+%%#include <stdlib.h>
+%%#include <time.h>
+%%#include <unistd.h>
+%%#include <stdlib.h>
+
+%%FILE *fdfga;
+%%time_t secondes;
+%%char tabDate[24];
+%%char *fmtDate=tabDate;
+%%struct tm *ptdate;
+
+%%char dataDir[25];
+%%char fileName[23];
+
+%%char FGAfile[55];
+
+ss ss1
+{
+
+/*-------------------state connect------------------------------*/
+	
+        state connected {
+             when ( (delay(2.0)) && (pvConnectCount() == pvChannelCount()) ) {
+
+              sprintf(dialog,"SNL_FGA :entree programme - connexions etablies \n");
+              pvPut(dialog);             
+             } state Debut
+       }  /* fin state connect */
+
+
+/*-------------------state Debut--------------------------------*/	    	 
+	
+	state Debut
+		   {
+		      when ( (delay(1)) && ((start_Mesure== 1) )) {
+                         sprintf(dialog,"ENVOI Start Rampe FGA03_PS; \n");
+                         pvPut(dialog);
+                         start_Mesure= 0;
+                        pvPut(start_Mesure);
+                        sprintf(dialog,"Debut rampe \n");
+                        pvPut(dialog); 
+                        sprintf(dialog,"Ouverture Fichier \n");
+                        pvPut(dialog); 
+
+                        time(&secondes);
+                        fmtDate=ctime(&secondes);
+                        printf("\n%s",fmtDate);
+                        ptdate=localtime(&secondes);
+                        strftime(fileName,23,"FGA%Y%m%d-%H%M",ptdate);
+                        sprintf(dataDir,"/home/ifmif/data");
+                        sprintf(FGAfile,"%s/fga/%s.txt",dataDir,fileName);
+                        printf("sauvegarde des points\n");
+                        printf("fichier=%s\n",FGAfile);
+                        fdfga=fopen(FGAfile, "w"); 
+                        if (fdfga == NULL ) printf("erreur open fic \n");
+                        if ( fdfga ) {
+                           printf("OK open fic \n");
+                           fprintf(fdfga,"processus = Four grid analyser \n");
+                           fprintf(fdfga,"date      = %s",fmtDate);
+                           fprintf(fdfga,"file=%s \n",FGAfile);
+                           fprintf(fdfga,"Energy  =%5.0f keV \n",Energie);
+                           fprintf(fdfga,"\n");
+                        }
+/*---- valeur initiale ----*/
+                        Vgrid = Vdeb;
+                        VG3 = Vgrid;
+                        pvPut(Vgrid);
+                        pvPut(VG3);
+                        DV = Delta_V;        
+                        Mes_VG3 = VMes;
+                        printf(" Vdeb = %5.1f ,Vfin = %5.1f ,VGrid = %5.1f  , DV = %5.1f   \n",Vdeb,Vfin,Vgrid,DV);
+                        fprintf(fdfga,"Vdeb = %5.1f ,  Vfin = %5.1f ,  DV = %5.1f \n",Vdeb,Vfin,DV);
+                        sprintf(dialog,"Vdeb = %5.1f Vfin = %5.1f DV = %5.1f Volts \n",Vdeb,Vfin,Delta_V);
+ /*                       fprintf(fdfga,"VGrid = %5.1f , VRdbk = %5.1f \n",Vgrid,Mes_VG3);*/
+                        pvPut(dialog);
+                        fprintf(fdfga,"    VGrid  ,  Vrdbk \n");
+                      } state Mesure_Rampe
+
+                   }/* fin state Debut */
+
+/*-------------------state Mesure_Rampe-------------------------*/
+
+  state Mesure_Rampe {
+    when ( (delay(1.0)) && (stop_Mesure == 1)  ) {
+     fclose(fdfga);
+     printf("State : mesure (arret rampe)\n");
+     sprintf(dialog," State arret_rampe(1) \n");
+     pvPut(dialog);
+    } state Debut 
+
+
+    when ( (delay(1.0)) && (Vgrid >= Vfin)  ) {
+     fclose(fdfga); 
+    printf(" State Mesure_Rampe - test Vfinal - \n");
+     sprintf(dialog,"Mesure_Rampe:fin rampe, close fic \n");
+     pvPut(dialog); 
+
+/*     printf(" State Verif_rampe \n"); */      
+    } state Debut 
+/************************************************************/ 
+/*   Inserer la commande de déclenchement de la             */
+/*   carte d'acquisition rapide (ICV108/ICV178) ou de la    */
+/*   carte ICV150                                           */
+/************************************************************/    
+    when ( (delay(1.0))  ) {
+        Mes_VG3 = VMes;
+        Vgrid03 = Vgrid;
+/*printf(".................attente 200 \n");
+# [previously commented out] taskDelay(200);
+delay(200);
+printf("..........................fin taskDelay (200) \n");*/
+
+     printf("Mesure VGrid = %5.1f ,  VRdbk = %5.1f \n",Vgrid03,Mes_VG3);
+     fprintf(fdfga,"%5.1f   ,   %5.1f \n",Vgrid,Mes_VG3);
+      
+    } state pas_suivant
+
+}  /* Fin state  Mesure_Rampe  */
+
+/*-------------------state pas_suivant--------------------------*/
+
+
+  state pas_suivant {
+    when ( (delay(0.2)) && (stop_Mesure == 1)  ) {
+     fclose(fdfga);
+     printf("State : pas suivant (arret rampe)\n");
+     sprintf(dialog," State arret_rampe(1) \n");
+     pvPut(dialog);
+    } state Debut  
+    
+    when ( (delay(0.2))  ) {
+
+        Vgrid03 = Vgrid;
+        printf("parametres  Vdeb = %5.1f ,  Vfin = %5.1f , DV = %5.1f \n",Vdeb,Vfin,DV);
+
+        Vgrid =Vgrid03 + DV;
+        pvPut(Vgrid);
+        VG3 = Vgrid;
+        pvPut(VG3);
+        Mes_VG3 = VMes;
+/*        fprintf(fdfga,"VGrid = %5.1f , VRdbk = %5.1f \n",Vgrid,Mes_VG3);*/
+
+     printf("envoi   Vgrid03 = %5.1f \n",Vgrid);
+     sprintf(dialog,"---Envoi %5.1f Volts \n",Vgrid);
+     pvPut(dialog); 
+      
+    } state Mesure_Rampe
+
+}  /* Fin state  pas_suivant  */
+
+/*----------------state verif_rampe----------------------------*/
+
+  state verif_rampe {
+    when ( (delay(1.0)) && (stop_Mesure == 1)  ) {
+     sprintf(dialog,"arret rampe \n");
+     pvPut(dialog);
+     fclose(fdfga);
+    printf(" State verif_Rampe - stop_Mesure - \n");
+ 
+/*     printf(" State stop_rampe(2) \n");  */
+    } state Debut  
+
+    when ( (delay(1.0)) && (Vgrid >= Vfin)  ) {
+     fclose(fdfga); 
+    printf(" State verif_Rampe - test Vfinal - \n");
+     sprintf(dialog,"fin de la rampe , fermeture fichier\n");
+     pvPut(dialog); 
+
+/*     printf(" State Verif_rampe \n"); */      
+    } state Debut
+
+    when ( (delay(1.0)) && (Vgrid <= Vfin)  ) {
+    Nombre_pas =Nombre_pas + 1;
+    printf(" State verif_Rampe - increment - \n");      
+    } state pas_suivant
+    
+  } /* Fin state verif_rampe   */
+
+/*----------------------------------------------------------*/
+
+
+}   	
+
+

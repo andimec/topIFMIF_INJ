@@ -1,0 +1,118 @@
+/*
+#  C.E.A. IRFU/SIS/LDISC
+#
+# 
+#
+*/
+/*
+*-----------------------------------------------------------------------
+*	IFMIF/EVEDA Injecteur:
+*	snl_RF : programme SNL pour la gestion de la commande  
+*			ON / OFF du gene RF...
+
+	2023/03/17 : "SRC:RF_GENE:CWmdOn" write modify(0/1 -> 1/0)
+
+*-----------------------------------------------------------------------
+*/
+
+  /* program snl_RF  */
+
+program injectorRF
+
+short def_RF;
+assign def_RF to "SRC:RF_GENE:DefRF";
+monitor def_RF;
+
+short RF_OFF;
+assign RF_OFF to "SRC:RF_GENE:MOCmdOn";
+monitor RF_OFF;
+
+short P_CW;
+assign P_CW to "SRC:RF_GENE:PulseOrCW";
+monitor P_CW;
+
+short modeCW;
+assign modeCW to "SRC:RF_GENE:CWmdOn";
+monitor modeCW;
+
+short Cons_Modbus;
+assign Cons_Modbus to "SRC:RF_GENE:Modbus";
+monitor Cons_Modbus;
+
+short Envoi_Cde;
+assign Envoi_Cde to "SRC:RF_GENE:EnvoiMot2";
+monitor Envoi_Cde;
+ss ss1
+{
+	
+	state connected
+	{
+		when( (delay(2.0) ) && (pvConnectCount() == pvChannelCount() ) )
+		{
+			printf("SNL_RF :entree programme - connexions etablies \n");
+		}
+		state Debut
+	}
+	
+	state Debut
+	{
+		when( (delay(1) ) && ( (def_RF) == 1) )
+		{
+			printf("RF en defaut, passage en OFF; \n");
+			RF_OFF = 0;
+			pvPut(RF_OFF);
+		}
+		state suite_1
+	}
+	
+	state suite_1
+	{
+		when( (delay(1) ) && ( (def_RF) == 0) )
+		{
+			printf("RF OK ; \n");
+		}
+		state Debut
+	}
+}
+
+ss ss2
+{
+	state connected
+	{
+		when( (delay(2.0) ) && (pvConnectCount() == pvChannelCount() ) )
+		{
+			printf("SNL_RF(ss2) :entree programme - connexions etablies \n");
+		}
+		state Debut
+	}
+	
+	state Debut
+	{
+		when( (delay(1) ) && ( (P_CW) == 1) )
+		{
+			printf("SNL_RF(ss2) : mode RF CW; \n");
+			modeCW = 1;
+			pvPut(modeCW);
+			Cons_Modbus = 0;
+			pvPut(Cons_Modbus);
+			Envoi_Cde = 1;
+			pvPut(Envoi_Cde);
+		}
+		state suite_1
+	}
+	
+	state suite_1
+	{
+		when( (delay(1) ) && ( (P_CW) == 0) )
+		{
+			printf("SNL_RF(ss2) : mode RF Pulse; \n");
+			modeCW = 0;
+			pvPut(modeCW);
+			Cons_Modbus = 1;
+			pvPut(Cons_Modbus);
+			Envoi_Cde = 1;
+			pvPut(Envoi_Cde);
+		}
+		state Debut
+	}
+}

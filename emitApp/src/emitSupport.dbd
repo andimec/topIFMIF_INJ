@@ -1,0 +1,32 @@
+# C.E.A. IRFU/SIS/LDII
+#
+# @(#) $Id: emitSupport.dbd,v 1.5 2012/08/08 13:07:45 cmsmgr Exp $
+#
+# emitSupport.dbd
+#
+# This database definition file contains all the definitions
+# provided by the support application module emit.
+# 
+# It is installed by Makefile in <top>/dbd and can be included
+# by other dbd files.
+# 
+
+# Record types
+#include "xxxRecord.dbd"
+
+# Devices
+#device(<record type>,<link type>,<dset name>,"<choice string>")
+
+# Drivers
+#driver(<drvet name>)
+
+# SNL programs or functions to be invoked from iocsh
+#registrar(<function name>Registrar)
+registrar(emitSnlAlimsRegistrar)
+registrar(emitSnlMotorRegistrar)
+
+# Functions for sub or gensub records
+#function(<function name>)
+
+# Variables
+#variable(<variable name>)

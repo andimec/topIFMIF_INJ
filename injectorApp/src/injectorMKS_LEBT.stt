@@ -1,0 +1,93 @@
+/*
+#  C.E.A. IRFU/SIS/LDISC
+#
+# 
+#
+*/
+/*
+*------------------------------------------------------------------------------
+*   IFMIF/EVEDA Injecteur:                                                    -
+*   snl_MKS_LEBT : programme SNL pour le PR4000 de la LEBT                    -
+*                                                                             -   
+*      Injection de Krypton                                                   -   
+*------------------------------------------------------------------------------
+*/
+
+/* program snlMFC_LEBT */
+
+program injectorMKS_LEBT
+
+ 
+string EtatVanne1;
+assign EtatVanne1 to "LEBT:MFC:EtatVanne"; /* string */
+monitor EtatVanne1;
+
+
+
+string MKS_LEBT_LD;
+assign MKS_LEBT_LD to "LEBT:MFC:EtatLD"; /* string */
+monitor MKS_LEBT_LD;
+
+short EtatLocRem;
+assign EtatLocRem to "LEBT:MFC:EtatLocRem"; /* Loc=0;Rem=1 */
+
+short EtatVanne_1;
+assign EtatVanne_1 to "LEBT:MFC:StsVanne"; /* Close=0;Open=1 */
+
+
+
+
+ss ss1
+{
+	state init {
+	    	      when (delay(0.5)) {
+                      printf(" MKS_LEBT :  Init SNL pour le PR4000 LEBT\n");
+                      } state suite_1
+		   }
+	
+	state suite_1
+		   {
+		      when ( delay(2)) {
+
+			/* Local~Distant Local=0,Remote=1*/ 
+			if (strcmp(MKS_LEBT_LD,"OFF") != 0) 
+                          { 
+                            EtatLocRem=1;
+                            pvPut(EtatLocRem);
+/*                          printf("MKS_LEBT :  PR4000 en mode distance\n");*/
+                          }
+			else 
+                          {
+                             
+                               EtatLocRem=0; 
+                               pvPut(EtatLocRem);
+/*                             printf("MKS_LEBT :  PR4000 en mode local\n");*/
+                             
+                          }
+
+			/* Etat de la vanne de sortie Hydrogene */
+			if  (strcmp(EtatVanne1,"OFF") != 0)  
+                           {
+                             EtatVanne_1=1;
+/*                            printf("MKS_LEBT :  Valve 1 open\n");*/
+                             pvPut(EtatVanne_1);
+                           }
+			else  
+                             {
+                                                      
+                                  EtatVanne_1=0;
+/*                                  printf("MKS_LEBT : Valve 1 close \n");*/
+                                  pvPut(EtatVanne_1);
+                                
+                             }
+		
+                      } state suite_2
+	           }
+	
+	state suite_2
+		{
+	    	  when (delay(0.5)) {
+/*                  printf("MKS_LEBT : Suite du prog SNL_MKS_LEBT \n");*/
+                  } state suite_1
+		}
+}

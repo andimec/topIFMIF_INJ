@@ -1,0 +1,621 @@
+/********************************************************/
+/*                                                      */
+/*   IFMIF/EVEDA : Injecteur                            */
+/*                       arret automatique des HT .     */
+/********************************************************/
+
+/*program snl_htoff*/
+program injectorHTOFF
+/* 0. actions automatiques                    */
+
+
+
+string dialog;
+assign dialog to "LEBT:AUTO:Diag1HV";
+
+string dialog2;
+assign dialog2 to "LEBT:AUTO:DialSecu";
+
+string dialog3;
+assign dialog3 to "LEBT:AUTO:Dialog3";
+
+
+
+
+short action;
+assign action to "LEBT:AUTO:StopHT";
+monitor action;
+
+
+
+
+short fin_action;
+assign fin_action to "LEBT:AUTO:EndActHT";
+monitor fin_action;
+
+short perm_autostart;
+assign perm_autostart to "LEBT:AUTO:OKforStart";
+monitor perm_autostart;
+
+short arret_complet;
+assign arret_complet to "LEBT:AUTO:Stop";
+monitor arret_complet;
+
+
+short perm_htoff;
+assign perm_htoff to "LEBT:AUTO:OKforHTOFF";
+monitor perm_htoff;
+
+
+
+
+/*---------------------------------------------*/
+
+int pret_IEPS;
+assign pret_IEPS to "SRC:IE_PS:OnStat";
+monitor pret_IEPS;
+
+float mes_IEPS;
+assign mes_IEPS to "SRC:IE_PS:VRdbkcalc"; 
+monitor mes_IEPS; 
+  
+float cons_IEPS;
+assign cons_IEPS to "SRC:IE_PS:VSet";
+monitor cons_IEPS;                                        
+
+
+
+
+
+
+
+float cons_phf;
+assign cons_phf to "SRC:AUTO:HFPwr";
+monitor cons_phf;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* 6. autres variables                               */
+float verif_C1PS;
+float verif_C2PS;
+/*float verif_R_PS;*/
+float verif_SOL01_PS;
+float verif_SOL02_PS;
+/*
+float verif_IEPS;
+
+float verif_valht0;
+float verif_valIEPS0;
+float verif_valht1;
+float verif_valdebit;
+float verif_valhf;
+int compteur=0;
+int compteur_debit=0;
+*/
+/* 7. variable pour pre-requis                       */ 
+
+
+float mes_vht; 
+assign mes_vht to "LEBT:HV_PS:ScaleVHT";
+monitor mes_vht;
+ 
+float verifHT;
+
+float cons_vht;
+assign cons_vht to "LEBT:HV_PS:HTCmd";
+monitor cons_vht;
+
+short a_ht;
+assign a_ht to "LEBT:HV_PS:HTOffCmd";
+
+short m_ht;
+assign m_ht to "LEBT:HV_PS:HTOnCmd";
+
+int etat_ht;
+assign etat_ht to "LEBT:HV_PS:OnStat";
+monitor etat_ht;
+
+short a_IEPS;
+assign a_IEPS to "SRC:IE_PS:OffCmd";
+
+
+int etat_C1PS;
+assign etat_C1PS to "SRC:COIL01_PS:OnStat";
+monitor etat_C1PS;
+
+float imesC1PS; 
+assign imesC1PS to "SRC:COIL01_PS:IRdbk";
+monitor imesC1PS;
+
+float iconsC1PS; 
+assign iconsC1PS to "SRC:COIL01_PS:ISet";
+monitor iconsC1PS;
+
+short a_C1PS; 
+assign a_C1PS to "SRC:COIL01_PS:OFF";
+
+
+
+
+int etat_C2PS;
+assign etat_C2PS to "SRC:COIL02_PS:OnStat";
+monitor etat_C2PS;
+
+float imesC2PS; 
+assign imesC2PS to "SRC:COIL02_PS:IRdbk";
+monitor imesC2PS;
+
+float iconsC2PS; 
+assign iconsC2PS to "SRC:COIL02_PS:ISet";
+monitor iconsC2PS;
+
+short a_C2PS; 
+assign a_C2PS to "SRC:COIL02_PS:OFF";
+
+
+float cons_HF;
+assign cons_HF to "SRC:RF_GENE:WrtPI";
+monitor cons_HF;
+
+
+
+
+short etat_hf;
+assign etat_hf to "SRC:RF_GENE:MarcheRF";
+monitor etat_hf;
+
+int pret_hf;
+assign pret_hf to "SRC:RF_GENE:PretRF";
+monitor pret_hf;
+
+short ma_hf;
+assign ma_hf to "SRC:RF_GENE:MOCmdOn";
+
+
+
+short a_RPS;
+assign a_RPS to "LEBT:R_PS:OFF";
+
+
+
+
+
+int etat_SOL01_PS;
+assign etat_SOL01_PS to "LEBT:SOL01_PS:OnStat";
+monitor etat_SOL01_PS;
+
+float imesSOL01_PS; 
+assign imesSOL01_PS to "LEBT:SOL01_PS:IRdbk";
+monitor imesSOL01_PS;
+
+float iconsSOL01_PS; 
+assign iconsSOL01_PS to "LEBT:SOL01_PS:ISet";
+monitor iconsSOL01_PS;
+
+short a_SOL01PS; 
+assign a_SOL01PS to "LEBT:SOL01_PS:OFF";
+
+
+int etat_SOL02_PS;
+assign etat_SOL02_PS to "LEBT:SOL02_PS:OnStat";
+monitor etat_SOL02_PS;
+
+float imesSOL02_PS; 
+assign imesSOL02_PS to "LEBT:SOL02_PS:IRdbk";
+monitor imesSOL02_PS;
+
+float iconsSOL02_PS; 
+assign iconsSOL02_PS to "LEBT:SOL02_PS:ISet";
+monitor iconsSOL02_PS;
+
+short a_SOL02PS; 
+assign a_SOL02PS to "LEBT:SOL02_PS:OFF";
+
+int cf_intro;
+assign cf_intro to "LEBT:FC:InStat";
+monitor cf_intro;
+
+int cf_hors;
+assign cf_hors to "LEBT:FC:OutStat";
+monitor cf_hors;
+
+
+
+short intro_cf;
+assign intro_cf to "LEBT:FC:InCmd";
+short retrait_cf;
+assign retrait_cf to "LEBT:FC:OutCmd";
+
+
+
+
+/*------------------------------------------------*/
+
+
+
+%%#include <stdio.h>
+%%#include <string.h>
+%%#include <math.h>
+%%#include <stdlib.h>
+
+%%#include <time.h>
+%%#include <unistd.h>
+%%#include <stdlib.h>
+
+/*--------- %%#include <ioLib.h> ----------*/ 
+
+/*------------------------------------------------*/
+
+
+
+ss htoff
+{
+
+  state connected {
+    when ( (delay(2.0)) && (pvConnectCount() == pvChannelCount()) ) {
+     sprintf(dialog,"snl_htoff :Connexions etablies \n");
+       pvPut(dialog);
+       printf(" snl_htoff :Connexions avec PVs etablies\n");
+    } state wait_act
+  }  /*  fin state connect */
+
+  state wait_act {
+    when ( ((action == 1) || (arret_complet == 1))   && (perm_htoff == 1) ) {
+     sprintf(dialog,"snl_htoff :Demande arret faisceau \n");
+     pvPut(dialog);
+     action=1;
+     pvPut(action);
+     printf(" snl_htoff :Demande action arret faisceau:\n");
+/*     perm_htoff=0;
+     pvPut(perm_htoff);*/
+
+    } state arret_hf
+
+    when ( (action == 1) && (perm_htoff == 0) ) {
+     sprintf(dialog,"htoff :arret non autorise\n");
+     printf("snl_htoff : action arret faisceau non autorisee\n");
+     pvPut(dialog);
+     action=0;
+     pvPut(action);
+     perm_htoff=0;
+     pvPut(perm_htoff);
+    } state wait_act
+
+     when ( (delay(5.0)) && (action == 0) ) {
+ /*    printf("snl_ htoff:Attente action  \n");
+     sprintf(dialog,"snl_htoff :Attente action  \n");
+     pvPut(dialog); */   
+    } state wait_act
+
+  }  /*  fin state wait_act */
+
+
+
+  state arret_hf {
+    when ( (etat_hf == 0) && (delay(2)) ) {    
+     sprintf(dialog,"htoff:RF a l'arret  : OK \n");
+     printf("snl_arret_HF : RF a l'arret  : OK \n");
+     pvPut(dialog);
+     cons_HF=0;
+     pvPut(cons_HF);
+     ma_hf=0;
+     pvPut(ma_hf);
+    } state hvps_1
+
+    when ( (etat_hf == 1) && (delay(2.0)) ) {
+     sprintf(dialog,"htoff:envoi arret RF  \n");
+     printf("snl_arret_HF : RF en marche : envoi arret \n");
+     pvPut(dialog);
+     ma_hf=0;
+     pvPut(ma_hf);
+     cons_HF=0;
+     pvPut(cons_HF);
+    } state hvps_1
+    when ( (action == 0) ) {
+     sprintf(dialog,"htoff:Action arretee ! \n");
+     pvPut(dialog);    
+    } state wait_act  
+
+  } /*  fin state  arret_hf */ 
+
+  state hvps_1 {
+    when ( (etat_ht == 0) && (delay(2)) ) {    
+     sprintf(dialog,"htoff : HV_PS a l'arret \n");
+     printf("snl_htoff :HV_PS a l'arret  : OK \n");
+     pvPut(dialog);
+     cons_vht=0;
+     pvPut(cons_vht);
+    } state ieps_1
+
+    when ( (etat_ht == 1) && (delay(2.0)) ) {
+     sprintf(dialog,"htoff: HV_PS en marche \n");
+     printf("snl_htoff :HV_PS  en marche :(HV=IE)  \n");
+     pvPut(dialog);
+     cons_vht=cons_IEPS;
+     pvPut(cons_vht);
+     /*taskDelay(200);*/
+	  delay(2.0);
+	 
+    } state verifHT_1
+
+    when ( (action == 0) ) {
+     sprintf(dialog,"htoff:Action arretee ! \n");
+     pvPut(dialog);    
+    } state wait_act  
+
+  } /*  fin state  hvps_1 */ 
+
+  state verifHT_1 {
+    when (  (delay(5)) ) {    
+     sprintf(dialog,"htoff :Verif si HV=IE \n");
+     printf("snl_htoff :Verif si HV=IE \n");
+     pvPut(dialog);
+     verifHT= fabs((mes_vht / mes_IEPS) - 1.0);
+     printf("verif HT=%6.2f  \n",verifHT);
+
+    } state hvps_2
+
+  } /*  fin state  hvps_1 */
+
+  state hvps_2 {
+    when ( (etat_ht == 1) && (verifHT <= 0.05) && (delay(2)) ) {    
+     sprintf(dialog,"htoff :RAZ IEPS\n");
+     printf("snl_htoff :HV_PS = IE_PS, RAZ IEPS \n");
+     pvPut(dialog);
+     cons_IEPS=0;
+     pvPut(cons_IEPS);
+     /*taskDelay(200);*/
+	 delay(2.0);
+    } state ieps_1
+
+    when ( (etat_ht == 0) && (delay(2.0)) ) {
+     sprintf(dialog,"htoff : HV arretee \n");
+     printf("snl_htoff :HV arretee\n");
+     pvPut(dialog);
+     cons_vht=0;
+     pvPut(cons_vht);
+     cons_IEPS=0;
+     pvPut(cons_IEPS);
+
+    } state arret_alims_HV
+
+    when ( (action == 0) ) {
+     sprintf(dialog,"htoff :Action arretee ! \n");
+     pvPut(dialog);    
+    } state wait_act  
+
+  } /*  fin state  hvps_2 */ 
+
+  state ieps_1 {
+
+    when ( (pret_IEPS == 0) && (delay(5)) ) {    
+     sprintf(dialog,"htoff : IE_PS a l'arret \n");
+     printf("snl_htoff :IE_PS a l'arret  \n");
+     pvPut(dialog);
+     cons_IEPS=0;
+     pvPut(cons_IEPS);
+    } state arret_alims_HV
+
+    when ( (pret_IEPS == 1) && (delay(5)) ) {    
+     sprintf(dialog,"htoff : IE_PS en marche \n");
+     printf("snl_htoff :IE_PS en marche, envoi 0 \n");
+     pvPut(dialog);
+     cons_vht=0;
+     pvPut(cons_vht);
+     /*taskDelay(200);*/
+	 delay(2.0);
+
+    } state arret_alims_HV
+
+
+  } /*  fin state  ieps_1 */ 
+
+
+  state  arret_alims_HV{
+
+    when (  (delay(2)) ) {    
+     sprintf(dialog,"htoff : arret alims HV\n");
+     printf("snl_htoff : arret alim HV \n");
+     pvPut(dialog);
+     pvPut(a_ht); 
+     /*taskDelay(200);*/ 
+     delay(2.0);
+	 
+    } state arret_alims_IE
+  } /*  fin state  arret_alims_HV  */ 
+
+
+
+  state  arret_alims_IE{
+
+    when (  (delay(5)) ) {    
+     sprintf(dialog,"htoff : arret alim IE\n");
+     printf("htoff : arret alim IE\n");
+     pvPut(dialog);
+     a_IEPS = 1; 
+     pvPut(a_IEPS);
+
+    } state Test_Arret_Complet
+
+  } /*  fin state  arret_alims_IE  */ 
+
+
+
+
+
+
+  state Test_Arret_Complet {
+    when ( (arret_complet == 1) && (perm_htoff == 1) && (delay(1.0))) {
+     sprintf(dialog,"htoff:arret complet \n");
+     pvPut(dialog);
+     printf(" snl_htoff :Demande action arret complet\n");
+    } state Arret_RPS
+
+    when ( (arret_complet == 0) && (perm_htoff == 1) ) {
+     sprintf(dialog,"snl_htoff :arret action  \n");
+     pvPut(dialog);
+     printf(" snl_htoff :Demande arret action\n");
+    } state termine
+
+}/*  fin state  Test_Arret_Complet  */
+
+
+  state Arret_RPS{
+
+    when (  (delay(1.0)) ) {   
+     a_RPS=1;
+     pvPut(a_RPS);
+ 
+     sprintf(dialog,"snl_hton : Arret RPS\n");
+     pvPut(dialog);
+     printf("snl_hton :Arret RPS   \n");
+    } state Arret_C1
+
+    when ( (action == 0) ) {
+     sprintf(dialog,"snl_hton : Action arretee ! \n");
+     pvPut(dialog);   
+     printf("snl_hton : Action arretee ! \n"); 
+    } state wait_act  
+  } /*  fin state  Arret_RPS */  
+
+
+  state Arret_C1 {
+
+    when (  (delay(1.0)) ) {   
+     a_C1PS=1;
+     pvPut(a_C1PS);
+ 
+     sprintf(dialog,"snl_hton : Arret C1  \n");
+     pvPut(dialog);
+     printf("snl_hton :Arret Coil 1   \n");
+    } state Arret_C2
+
+    when ( (action == 0) ) {
+     sprintf(dialog,"snl_hton : Action arretee ! \n");
+     pvPut(dialog);   
+     printf("snl_hton : Action arretee ! \n"); 
+    } state wait_act  
+  } /*  fin state  Arret_C1 */   
+
+  state Arret_C2 {
+
+    when (  (delay(1.0)) ) {   
+     a_C2PS=1;
+     pvPut(a_C2PS);
+ 
+     sprintf(dialog,"snl_hton : Arret C2  \n");
+     pvPut(dialog);
+     printf("snl_hton :Arret Coil 2   \n");
+    } state Arret_SOL01
+
+    when ( (action == 0) ) {
+     sprintf(dialog,"snl_hton : Action arretee ! \n");
+     pvPut(dialog);   
+     printf("snl_hton : Action arretee ! \n"); 
+    } state wait_act  
+  } /*  fin state  Arret_C2 */ 
+
+  state Arret_SOL01 {
+
+    when (  (delay(1.0)) ) {   
+     a_SOL01PS=1;
+     pvPut(a_SOL01PS);
+ 
+     sprintf(dialog,"snl_hton : (1)Arret SOL1  \n");
+     pvPut(dialog);
+     printf("snl_hton :Arret SOL 1   \n");
+    } state Arret_SOL02
+
+    when ( (action == 0) ) {
+     sprintf(dialog,"snl_hton : Action arretee ! \n");
+     pvPut(dialog);   
+     printf("snl_hton : Action arretee ! \n"); 
+    } state wait_act  
+  } /*  fin state  Arret_SOL01 */ 
+
+  state double_Arret_SOL01 {
+
+    when (  (delay(5.0)) ) {   
+     a_SOL01PS=1;
+     pvPut(a_SOL01PS);
+ 
+     sprintf(dialog,"snl_hton :(2)Arret SOL1  \n");
+     pvPut(dialog);
+     printf("snl_hton :deuxieme Arret SOL 1   \n");
+    } state Arret_SOL02
+
+    when ( (action == 0) ) {
+     sprintf(dialog,"snl_hton : Action arretee ! \n");
+     pvPut(dialog);   
+     printf("snl_hton : Action arretee ! \n"); 
+    } state wait_act  
+  } /*  fin state  double_Arret_SOL01 */ 
+
+
+  state Arret_SOL02 {
+
+    when (  (delay(1.0)) ) {   
+     a_SOL02PS=1;
+     pvPut(a_SOL02PS);
+ 
+     sprintf(dialog,"snl_hton :(1)Arret SOL 2  \n");
+     pvPut(dialog);
+     printf("snl_hton :Arret SOL 2   \n");
+    } state termine
+
+    when ( (action == 0) ) {
+     sprintf(dialog,"snl_hton : Action arretee ! \n");
+     pvPut(dialog);   
+     printf("snl_hton : Action arretee ! \n"); 
+    } state wait_act  
+  } /*  fin state  Arret_SOL02 */ 
+
+  state double_Arret_SOL02 {
+
+    when (  (delay(5.0)) ) {   
+     a_SOL02PS=1;
+     pvPut(a_SOL02PS);
+ 
+     sprintf(dialog,"snl_hton :(2)Arret SOL 2  \n");
+     pvPut(dialog);
+     printf("snl_hton :deuxieme Arret SOL 2   \n");
+    } state termine
+
+    when ( (action == 0) ) {
+     sprintf(dialog,"snl_hton : Action arretee ! \n");
+     pvPut(dialog);   
+     printf("snl_hton : Action arretee ! \n"); 
+    } state wait_act  
+  } /*  fin state  double_Arret_SOL02 */
+
+
+
+  state termine {
+    when ( (delay(1.0)) ) {    
+     action = 0;
+     pvPut(action);
+     perm_htoff=0;
+     pvPut(perm_htoff);
+     arret_complet = 0;
+     pvPut(arret_complet);
+     sprintf(dialog,"snl_htoff :FIN \n");
+     pvPut(dialog);
+     printf("snl_htoff : Procedure terminee \n");
+
+
+    } state wait_act
+  } 
+
+}/*  fin snl_htoff */ 
+

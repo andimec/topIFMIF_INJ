@@ -1,0 +1,58 @@
+# C.E.A. IRFU/SIS/LDII
+#
+# @(#) $Id: injectorSupport.dbd,v 1.3 2009/02/11 12:25:56 cmsmgr Exp $
+#
+# injectorSupport.dbd
+#
+# This database definition file contains all the definitions
+# provided by the support application module injector.
+# 
+# It is installed by Makefile in <top>/dbd and can be included
+# by dbd files.
+# 
+
+# Add new record types
+#include "xxxRecord.dbd"
+
+# Add new devices
+#device(<record type>,<link type>,<dset name>,"<choice string>")
+
+# Add new drivers
+#driver(<drvet name>)
+#
+# Add new SNL programs or functions to be invoked from iocsh
+#registrar(<function name>Registrar)
+#registrar(snlMFC_SRCRegistrar)
+registrar(injectorMKS_SRCRegistrar)
+#registrar(snlTimingRegistrar)
+registrar(injectorTimingRegistrar)
+#registrar(snlMFC_LEBTRegistrar)
+registrar(injectorMKS_LEBTRegistrar)
+#registrar(snl_HT_AUTORegistrar)
+#registrar(snl_htonRegistrar)
+registrar(injectorHTONRegistrar)
+#registrar(snl_htoffRegistrar)
+registrar(injectorHTOFFRegistrar)
+#registrar(snl_Rampe_C1Registrar)
+registrar(injectorRampe_C1Registrar)
+#registrar(snl_Rampe_C2Registrar)
+registrar(injectorRampe_C2Registrar)
+#registrar(snl_Rampe_S1Registrar)
+registrar(injectorRampe_S1Registrar)
+#registrar(snl_Rampe_S2Registrar)
+registrar(injectorRampe_S2Registrar)
+#registrar(snl_RFRegistrar)
+registrar(injectorRFRegistrar)
+#registrar(snl_FGARegistrar)
+registrar(injectorFGARegistrar)
+#For the New Power Supply
+registrar(drvAsynIPPortRegisterCommands)
+# Add new functions for sub or gensub records
+#function(<function name>)
+
+function(writeNBits)
+function(writeNMots)
+function(readNMots)
+
+# Add new variables
+#variable(<variable name>)

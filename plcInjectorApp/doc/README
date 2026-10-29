@@ -1,0 +1,15 @@
+# C.E.A. IRFU/SIS/LDII
+#
+# @(#) $Id: README 663 2015-11-10 13:52:37Z gomes $
+#
+# README
+#
+
+You can put in this directory any document concerning the application module 
+or the equipment(s) controlled by the application. The prefered format for the 
+documents are PDF (.pdf) and text (.txt).
+
+At least you must provide a document describing:
+- the macros used in the database templates,
+- the initializations that must be done,
+- the sequencer programs and their parameters

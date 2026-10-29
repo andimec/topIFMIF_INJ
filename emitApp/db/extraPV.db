@@ -1,0 +1,34 @@
+# Added by Patricia
+record(ao, SRC:TIM:Trep) {
+  field(DESC, "Repetition")
+  field(DTYP, "Soft Channel")
+  field(OMSL, "supervisory")
+  field(DRVH, "5000")
+  field(DRVL, "20")
+  field(HOPR, "5000")
+  field(LOPR, "20")
+  field(SCAN, "Passive")
+  field(PREC, "0")
+  field(EGU, "ms")
+}
+
+record(bi, "SRC:SVL:D2CloseStat") {
+  field(DESC, "Status PP (Simulated)") #og: "Status PP"
+  field(SCAN, "1 second") #og: I/O Intro
+  field(PINI, "NO")
+  field(DTYP, "Soft Channel") #og: "S7plc" + INP field
+  field(ONAM, "Closed") #og: "Close"
+  field(ZNAM, "Open") 
+  field(VAL, "1") # Default: Closed
+}
+
+record(bi, "SRC:SVL:H2CloseStat") { 
+  field(DESC, "Status PP (Simulated)") #og: "Status PP"
+  field(SCAN, "1 second") #og: I/O Intro
+  field(PINI, "NO")
+  field(DTYP, "Soft Channel") #og: "S7plc" + INP field
+  field(ONAM, "Closed") #og: "Close"
+  field(ZNAM, "Open") 
+  field(VAL, "1") # Default: Closed
+}
+

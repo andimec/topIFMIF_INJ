@@ -1,0 +1,11 @@
+[inj-cRIO]
+inj-cRIO="localhost"
+
+[My Computer]
+My Computer="172.16.12.36"
+
+[NI-cRIO-9068-01a13ef5]
+NI-cRIO-9068-01a13ef5="192.168.175.206"
+
+[マイ コンピュータ]
+マイ コンピュータ="192.168.175.187"

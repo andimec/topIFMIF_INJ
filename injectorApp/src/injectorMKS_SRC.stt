@@ -1,0 +1,109 @@
+/*
+#  C.E.A. IRFU/SIS/LDISC
+#
+# 
+#
+*/
+/******************************************************************************
+*   IFMIF/EVEDA Injecteur:
+*   snl_MKS_SRC : programme SNL pour le PR4000 de la source
+*   
+*   
+*------------------------------------------------------------------------------
+*/
+
+/*program snlMFC_SRC*/
+
+program injectorMKS_SRC
+
+ 
+string EtatVanneH2;
+assign EtatVanneH2 to "SRC:MFCH:EtatVanne"; /* string */
+monitor EtatVanneH2;
+
+string EtatVanneD2;
+assign EtatVanneD2 to "SRC:MFCD:EtatVanne"; /* string */
+monitor EtatVanneD2;
+
+string MKS_SRC_LD;
+assign MKS_SRC_LD to "SRC:MFCH:EtatLD"; /* string */
+monitor MKS_SRC_LD;
+
+short EtatLocRem;
+assign EtatLocRem to "SRC:MFCH:EtatLocRem"; /* Loc=0;Rem=1 */
+
+short EtatVanne_H2;
+assign EtatVanne_H2 to "SRC:MFCH:StsVanne"; /* Close=0;Open=1 */
+
+short EtatVanne_D2;
+assign EtatVanne_D2 to "SRC:MFCD:StsVanne"; /* Close=0;Open=1 */
+
+
+ss ss1
+{
+	state init {
+	    	      when (delay(0.5)) {
+                      printf(" snlMFC_SRC: Init SNL pour le PR4000 source\n");
+                      } state suite_1
+		   }
+	
+	state suite_1
+		   {
+		      when ( delay(2)) {
+
+			/* Local~Distant Local=0,Remote=1*/ 
+			if (strcmp(MKS_SRC_LD,"OFF") != 0) 
+                          { 
+                            EtatLocRem=1;
+                            pvPut(EtatLocRem);
+/*                          printf(" MKS_SRC :PR4000 en Mode distance....\n");*/
+                          }
+			else 
+                          {
+                               EtatLocRem=0; 
+                               pvPut(EtatLocRem);
+/*                            printf("MKS_SRC : PR4000 en mode Local.....\n");*/
+                          }
+
+			/*Etat de la vanne de sortie Hydrogene */
+			if  (strcmp(EtatVanneH2,"OFF") != 0)  
+                           {
+                             EtatVanne_H2=1;
+ /*                          printf("MKS_SRC :  Vanne H2 Open.... \n");*/
+                             pvPut(EtatVanne_H2);
+                           }
+			else  
+                             {
+                                  EtatVanne_H2=0;
+/*                                 printf("MKS_SRC :Vanne H2 Close......\n");*/
+                                  pvPut(EtatVanne_H2);
+                             }
+
+			/* Etat de la vanne de sortie Deuterium */ 
+			if  (strcmp(EtatVanneD2,"OFF") != 0)  
+                           {
+                             EtatVanne_D2=1;
+ /*                          printf("MKS_SRC : Vanne D2 Open..........\n");*/
+                             pvPut(EtatVanne_D2);
+                           }
+			else  
+                             {
+                                                      
+                                  EtatVanne_D2=0;
+/*                                 printf("MKS_SRC :Vanne D2 Close........... \n");*/
+                                  pvPut(EtatVanne_D2);
+                                
+                             }                           
+
+			
+
+                      } state suite_2
+	           }
+	
+	state suite_2
+		{
+	    	  when (delay(0.5)) {
+/*                   printf("Suite \n");*/
+                  } state suite_1
+		}
+}

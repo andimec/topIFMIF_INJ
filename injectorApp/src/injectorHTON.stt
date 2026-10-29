@@ -1,0 +1,1833 @@
+/*********************************************************/
+/*                                                       */
+/*   IFMIF/EVEDA : Injecteur                             */
+/*                       montee automatique des HT .     */
+/*  D.BOGARD IRFU/SIS/LDISC        24 Janvier 2012       */
+/*********************************************************/
+
+/*   program snl_hton  */
+
+program injectorHTON
+
+/* 0. indicateur si fin action OK                    */
+string dialog;
+assign dialog to "LEBT:AUTO:Diag1HV";
+
+string dialog2;
+assign dialog2 to "LEBT:AUTO:DialSecu";
+
+string dialog3;
+assign dialog3 to "LEBT:AUTO:Dialog3";
+
+short fin_action;
+assign fin_action to "LEBT:AUTO:EndActHT";
+monitor fin_action;
+
+short perm_autostart;
+assign perm_autostart to "LEBT:AUTO:OKforStart";
+monitor perm_autostart;
+
+short action;
+assign action to "LEBT:AUTO:UptoHT1";
+monitor action;
+
+
+
+short action_alims;
+assign action_alims to "LEBT:AUTO:PSUP";
+monitor action_alims;
+
+
+
+
+/*-----IEPS ---------------*/
+
+short a_IEPS;
+assign a_IEPS to "SRC:IE_PS:OffCmd";
+
+short m_IEPS;
+assign m_IEPS to "SRC:IE_PS:OnCmd";
+
+short rst_IEPS;
+assign rst_IEPS to "SRC:IE_PS:RstCmd";
+
+
+
+int marche_IEPS;
+assign marche_IEPS to "SRC:IE_PS:OnStat";
+monitor marche_IEPS;
+
+int pret_IEPS;
+assign pret_IEPS to "SRC:IE_PS:RdyStat";
+monitor pret_IEPS;
+
+float mes_IEPS;
+assign mes_IEPS to "SRC:IE_PS:VRdbkcalc"; 
+monitor mes_IEPS; 
+  
+float cons_IEPS;
+assign cons_IEPS to "SRC:IE_PS:VSet";
+monitor cons_IEPS;                                       
+
+/*----actsauto ------------------------*/
+
+
+
+
+float IEPS0;
+assign IEPS0 to "SRC:AUTO:VSetIEPS";
+monitor IEPS0;
+
+
+float HVPS0;
+assign HVPS0 to "LEBT:HV_PS:HTinitauto";
+monitor HVPS0;
+
+
+
+float ht1;
+assign ht1 to "LEBT:HV_PS:HTfin1";
+monitor ht1;
+
+
+float imontee;
+assign imontee to "LEBT:AUTO:Imontee";
+monitor imontee;
+
+
+
+
+
+
+/*---------------------------------------------*/
+
+short perm_hton;
+assign perm_hton to "LEBT:AUTO:OKforHTON";
+monitor perm_hton;
+
+short perm_faisceau;
+assign perm_faisceau to "LEBT:AUTO:OKforBeam";
+monitor perm_faisceau;
+
+
+float cons_phf0;
+assign cons_phf0 to "SRC:AUTO:HFPwr";
+monitor cons_phf0;
+
+
+float cons_debit0;
+assign cons_debit0 to "SRC:AUTO:DebitH";
+monitor cons_debit0;
+
+
+
+
+
+
+
+
+
+
+
+/* 6. autres variables                               */
+float verif_C1PS;
+float verif_C2PS;
+
+float verif_SOL01_PS;
+float verif_SOL02_PS;
+
+float verif_RPS;
+float verif_valht0;
+float verif_valIEPS0;
+float verif_valht1;
+float verif_valHF;
+
+/* 7. variable pour pre-requis                       */ 
+
+
+float mes_vht; 
+assign mes_vht to "LEBT:HV_PS:ScaleVHT";
+monitor mes_vht;
+ 
+float verifHT;
+
+float cons_vht;
+assign cons_vht to "LEBT:HV_PS:HTCmd";
+
+
+float cons_iht;
+assign cons_iht to "LEBT:HV_PS:ICmd";
+monitor cons_iht;
+
+short a_ht;
+assign a_ht to "LEBT:HV_PS:HTOffCmd";
+
+short m_ht;
+assign m_ht to "LEBT:HV_PS:HTOnCmd";
+
+short rst_ht;
+assign rst_ht to "LEBT:HV_PS:Reset";
+
+int etat_ht;
+assign etat_ht to "LEBT:HV_PS:OnStat";
+monitor etat_ht;
+
+short m_auxht;
+assign m_auxht to "LEBT:HV_PS:AuxOnCmd";
+
+
+
+/* COIL 1  */
+
+int etat_C1PS;
+assign etat_C1PS to "SRC:COIL01_PS:OnStat";
+monitor etat_C1PS;
+
+float imesC1PS; 
+assign imesC1PS to "SRC:COIL01_PS:IRdbk";
+monitor imesC1PS;
+
+float iconsC1PS; 
+assign iconsC1PS to "SRC:COIL01_PS:ISet";
+monitor iconsC1PS;
+
+short a_C1PS; 
+assign a_C1PS to "SRC:COIL01_PS:OFF";
+
+short m_C1PS; 
+assign m_C1PS to "SRC:COIL01_PS:ON";
+
+short rst_C1PS; 
+assign rst_C1PS to "SRC:COIL01_PS:RESET";
+
+/* COIL 2  */
+
+int etat_C2PS;
+assign etat_C2PS to "SRC:COIL02_PS:OnStat";
+monitor etat_C2PS;
+
+float imesC2PS; 
+assign imesC2PS to "SRC:COIL02_PS:IRdbk";
+monitor imesC2PS;
+
+float iconsC2PS; 
+assign iconsC2PS to "SRC:COIL02_PS:ISet";
+monitor iconsC2PS;
+
+float consigne_C1;
+float consigne_C2;
+
+short a_C2PS; 
+assign a_C2PS to "SRC:COIL02_PS:OFF";
+
+short m_C2PS; 
+assign m_C2PS to "SRC:COIL02_PS:ON";
+
+short rst_C2PS; 
+assign rst_C2PS to "SRC:COIL02_PS:RESET";
+
+/* RPS  */
+
+int etat_RPS;
+assign etat_RPS to "LEBT:R_PS:OnStat";
+monitor etat_RPS;
+
+float imesRPS; 
+assign imesRPS to "LEBT:R_PS:VRdbkcalc";
+monitor imesRPS;
+
+float iconsRPS; 
+assign iconsRPS to "LEBT:R_PS:VSet";
+monitor iconsRPS;
+
+short reset_RPS;
+assign reset_RPS to "LEBT:R_PS:RESET";
+
+short m_RPS;
+assign m_RPS to "LEBT:R_PS:ON";
+
+
+/* HF  */
+
+float mes_HF;
+
+short RAZ_HF;
+assign RAZ_HF to "SRC:RF_GENE:EnvoiRAZ";
+
+
+
+float cons_HF;
+assign cons_HF to "SRC:RF_GENE:WrtPI";
+monitor cons_HF;
+
+short etat_hf;
+assign etat_hf to "SRC:RF_GENE:MarcheRF";
+monitor etat_hf;
+
+int pret_hf;
+assign pret_hf to "SRC:RF_GENE:PretRF";
+monitor pret_hf;
+
+short ma_hf;
+assign ma_hf to "SRC:RF_GENE:MOCmdOn";
+
+
+/* SOL1  */
+
+int etat_SOL01_PS;
+assign etat_SOL01_PS to "LEBT:SOL01_PS:OnStat";
+monitor etat_SOL01_PS;
+
+float imesSOL01_PS; 
+assign imesSOL01_PS to "LEBT:SOL01_PS:IRdbk";
+monitor imesSOL01_PS;
+
+float iconsSOL01_PS; 
+assign iconsSOL01_PS to "LEBT:SOL01_PS:ISet";
+monitor iconsSOL01_PS;
+
+short m_SOL01PS; 
+assign m_SOL01PS to "LEBT:SOL01_PS:ON";
+
+
+short rst_SOL01PS; 
+assign rst_SOL01PS to "LEBT:SOL01_PS:RESET";
+
+
+float consigne_SOL1;
+
+
+
+
+/* SOL2  */
+
+int etat_SOL02_PS;
+assign etat_SOL02_PS to "LEBT:SOL02_PS:OnStat";
+monitor etat_SOL02_PS;
+
+float imesSOL02_PS; 
+assign imesSOL02_PS to "LEBT:SOL02_PS:IRdbk";
+monitor imesSOL02_PS;
+
+float iconsSOL02_PS; 
+assign iconsSOL02_PS to "LEBT:SOL02_PS:ISet";
+monitor iconsSOL02_PS;
+
+short m_SOL02PS; 
+assign m_SOL02PS to "LEBT:SOL02_PS:ON";
+
+short rst_SOL02PS; 
+assign rst_SOL02PS to "LEBT:SOL02_PS:RESET";
+
+
+float consigne_SOL2;
+
+/* cage de FARADAY  */
+
+int cf_intro;
+assign cf_intro to "LEBT:FC:InStat";
+monitor cf_intro;
+
+int cf_hors;
+assign cf_hors to "LEBT:FC:OutStat";
+monitor cf_hors;
+
+float Icf;
+assign Icf to "LEBT:EMIT_FC:I";
+monitor Icf;
+
+
+
+short intro_cf;
+assign intro_cf to "LEBT:FC:InCmd";
+short retrait_cf;
+assign retrait_cf to "LEBT:FC:OutCmd";
+
+/*  Debitmetre H2  */
+short etat_vanne_H2;
+assign etat_vanne_H2 to "SRC:MFC_H:StsVanne";
+monitor etat_vanne_H2;
+
+short ouv_vanne_H2;
+assign ouv_vanne_H2 to "SRC:MFC_H:OpenCmd";
+
+short ferm_vanne_H2;
+assign ferm_vanne_H2 to "SRC:MFC_H:OpenCmd";
+
+
+float consigne_debit_H2;
+assign consigne_debit_H2 to "SRC:MFC_H:Debit";
+monitor consigne_debit_H2;
+
+float mes_debit_H2;
+assign mes_debit_H2 to "SRC:MFC_H:Deb2Mes"; 
+monitor mes_debit_H2;
+
+/*------------------------------------------------*/
+float verif_valdebit_H2;
+
+int compteur=0;
+int compteur_debit_H2=0;
+
+
+
+
+
+
+%%#include <stdio.h>
+%%#include <string.h>
+%%#include <math.h>
+%%#include <stdlib.h>
+
+%%#include <time.h>
+%%#include <unistd.h>
+%%#include <stdlib.h>
+
+/*-------   %%#include <ioLib.h>    --------------*/  
+
+/*------------------------------------------------*/
+
+
+
+ss hton
+{
+
+  state connected {
+    when ( (delay(2.0)) && (pvConnectCount() == pvChannelCount()) ) {
+     sprintf(dialog,"snl_hton :Connexions with PV's OK \n");
+       pvPut(dialog);
+       printf(" snl_hton :Connexions with PVs OK\n");
+    } state wait_act
+  }  /*  fin state connect */
+
+    state wait_act {
+    when ( (action == 1) && (perm_hton == 1) ) {
+     sprintf(dialog,"snl_hton : Demande action montee HT's \n");
+     pvPut(dialog);
+     printf("snl_hton : Demande action montee HT's \n");
+     printf("snl_hton :     HVPS0 = %6.1f \n",HVPS0);
+     printf("snl_hton :     ht1   = %6.1f \n",ht1);
+     printf("snl_hton :     IEPS0 = %6.1f \n",IEPS0);
+     verif_C1PS=fabs((imesC1PS/iconsC1PS)-1.0);
+     verif_C2PS=fabs((imesC2PS/iconsC2PS)-1.0);
+/*----verif ecran????-------------------------------------*/
+     verif_SOL01_PS=fabs((imesSOL01_PS/iconsSOL01_PS)-1.0);
+     verif_SOL02_PS=fabs((imesSOL02_PS/iconsSOL02_PS)-1.0);   
+     verif_valht0=fabs((mes_vht/cons_vht)-1.0);
+     verif_valIEPS0=fabs((mes_IEPS/cons_IEPS)-1.0);
+     verif_valht1=fabs((mes_vht/cons_vht)-1.0);
+/*     verif_valdebit=fabs((mes_debit/cons_debit)-1.0);*/
+/*     verif_valHF=fabs((mes_HF/cons_HF)-1.0);*/
+/*     perm_hton=0;
+     pvPut(perm_hton);
+     fin_action=0;
+     pvPut(fin_action);*/
+    } state pre_requis_C1
+    when ( (action == 1) && (perm_hton == 0) ) {
+     action=0;
+     pvPut(action);
+     sprintf(dialog,"snl_hton : Action montee auto HT arretee ! \n");
+     pvPut(dialog); 
+     printf("snl_hton : Action montee auto HT arretee ! \n");
+    } state wait_act
+     when ( (delay(2.0)) && (action == 0) ) {
+/*     sprintf(dialog,"snl_hton : Attente action  \n");
+     pvPut(dialog);   
+     printf("snl_hton : Attente action  \n"); */
+    } state wait_act
+
+  }/*  fin state wait_act  */ 
+
+
+
+
+  state pre_requis_C1 {
+    when ( (etat_C1PS == 1) && (verif_C1PS <= 0.05) && (delay(0.1)) ) {    
+     sprintf(dialog,"snl_hton : Coil 1 OK \n");
+     pvPut(dialog);
+     printf("snl_hton : Coil 1 OK \n");
+    } state pre_requis_C2
+    when ( ((etat_C1PS == 0) || (verif_C1PS >= 0.05)) && (delay(2.0)) ) {
+     sprintf(dialog,"snl_hton : Verifier Coil 1 \n");
+     pvPut(dialog);
+     printf("snl_hton : Verifier Coil 1 \n");
+     verif_C1PS=fabs((imesC1PS/iconsC1PS)-1.0);
+    } state pre_requis_C1
+    when ( (action == 0) ) {
+     sprintf(dialog,"snl_hton : Action arretee ! \n");
+     pvPut(dialog);   
+     printf("snl_hton : Action arretee ! \n"); 
+    } state wait_act  
+  } /*  fin state  pre_requis_C1 */   
+
+
+  state pre_requis_C2 {
+    when ( (etat_C2PS == 1) && (verif_C2PS <= 0.05) && (delay(0.1)) ) {    
+     sprintf(dialog,"snl_hton : Coil 2 OK \n");
+     pvPut(dialog);
+     printf("snl_hton : Coil 2 OK \n");
+    } state pre_requis_RPS
+    when ( ((etat_C2PS == 0) || (verif_C2PS >= 0.05)) && (delay(2.0)) ) {
+     sprintf(dialog,"snl_hton : Verifier Coil 2 \n");
+     pvPut(dialog);
+     printf("snl_hton : Verifier Coil 2 \n");
+     verif_C2PS=fabs((imesC2PS/iconsC2PS)-1.0);
+    } state pre_requis_C2
+    when ( (action == 0) ) {
+     sprintf(dialog,"snl_hton : Action arretee ! \n");
+     pvPut(dialog); 
+     printf("snl_hton : Action arretee ! \n");   
+    } state wait_act  
+  } /*  fin state pre_requis_C2  */   
+
+  state pre_requis_RPS {
+    when ( (etat_RPS == 1) && (verif_RPS <= 0.05) && (delay(0.1)) ) {    
+     sprintf(dialog,"RPS OK \n");
+     pvPut(dialog);
+     printf("snl_hton : RPS OK \n");
+    } state pre_requis_SOL01PS
+    when ( ((etat_RPS == 0) || (verif_RPS >= 0.05)) && (delay(2.0)) ) {
+     sprintf(dialog,"Verifier RPS \n");
+     pvPut(dialog);
+     printf("snl_hton :Verifier  RPS  \n");
+     verif_RPS=fabs((imesRPS/iconsRPS)-1.0);
+     reset_RPS=1;
+     pvPut(reset_RPS);
+     sprintf(dialog,"snl_hton :reset RPS \n");
+     pvPut(dialog);
+     printf("snl_hton :reset  RPS  \n");
+     /*taskDelay(200);*/
+	 delay(2.0);
+     m_RPS=1;
+     pvPut(m_RPS);
+     sprintf(dialog,"snl_hton :marche RPS \n");
+     pvPut(dialog);
+     printf("snl_hton :marche  RPS  \n");
+     /*taskDelay(200);*/
+	 delay(2.0);
+    } state pre_requis_RPS
+    when ( (action == 0) ) {
+     sprintf(dialog,"snl_hton :Action arretee ! \n");
+     pvPut(dialog); 
+     printf("snl_hton :Action arretee ! \n");   
+    } state wait_act  
+  } /*  fin state  pre_requis_RPS */  
+
+  state pre_requis_SOL01PS {
+    when ( (etat_SOL01_PS == 1) && (verif_SOL01_PS <= 0.05) && (delay(0.1)) ) {    
+     sprintf(dialog,"SOL1  OK \n");
+     pvPut(dialog);
+     printf("snl_hton : SOL1 OK \n");
+    } state pre_requis_SOL02PS
+    when ( ((etat_SOL01_PS == 0) || (verif_SOL01_PS >= 0.05)) && (delay(2.0)) ) {
+     sprintf(dialog,"Verifier SOL1 \n");
+     pvPut(dialog);
+     printf("snl_hton :Verifier  SOL1  \n");
+     verif_SOL01_PS=fabs((imesSOL01_PS/iconsSOL01_PS)-1.0);
+    } state pre_requis_SOL01PS
+    when ( (action == 0) ) {
+     sprintf(dialog,"snl_hton :Action arretee ! \n");
+     pvPut(dialog);
+     printf("snl_hton :Action arretee ! \n");    
+    } state wait_act  
+
+  } /*  fin state pre_requis_SOL01PS  */ 
+
+
+  state pre_requis_SOL02PS {
+    when ( (etat_SOL02_PS == 1) && (verif_SOL02_PS <= 0.05) && (delay(0.1)) ) {    
+     sprintf(dialog,"SOL2  OK \n");
+     pvPut(dialog);
+     printf("snl_hton : SOL2 OK \n");
+    } state pre_requis_CF
+    when ( ((etat_SOL01_PS == 0) || (verif_SOL02_PS >= 0.05)) && (delay(2.0)) ) {
+     sprintf(dialog,"Verifier SOL2\n");
+     pvPut(dialog);
+     printf("snl_hton :Verifier  SOL2  \n");
+     verif_SOL02_PS=fabs((imesSOL02_PS/iconsSOL02_PS)-1.0);
+    } state pre_requis_SOL02PS
+    when ( (action == 0) ) {
+     sprintf(dialog,"Action arretee ! \n");
+     pvPut(dialog); 
+     printf("snl_hton :Action arretee ! \n");   
+    } state wait_act  
+  } /*  fin state pre_requis_SOL02PS  */ 
+
+
+  state pre_requis_CF {
+    when ( ((cf_intro == 1) && (cf_hors == 0)) && (delay(0.1)) ) {    
+     sprintf(dialog,"snl_hton :Cage faraday intro : OK \n");
+     pvPut(dialog);
+     printf("snl_hton :Cage faraday intro : OK \n");
+    } state arret_hf
+    when ( ((cf_hors == 1) && (cf_intro == 0)) && (delay(1.0)) ) {
+     sprintf(dialog,"snl_hton :cage hors : envoi intro \n");
+     pvPut(dialog);
+     printf("snl_hton :cage hors : envoi intro \n");
+     intro_cf=1;
+     pvPut(intro_cf);
+    } state pre_requis_CF
+
+  when ( (((cf_hors == 0) && (cf_intro == 0)) || ((cf_hors == 1) && (cf_intro == 1))) && (delay(2.0)) ) {
+
+     sprintf(dialog,"snl_hton :Defaut  : envoi intro \n");
+     pvPut(dialog);
+     intro_cf=1;
+     pvPut(intro_cf);
+     printf("snl_hton :Defaut  : envoi intro \n");
+    } state pre_requis_CF
+
+    when ( (action == 0) ) {
+     sprintf(dialog,"Action arretee ! \n");
+     pvPut(dialog);  
+     printf("snl_hton :Action arretee ! \n");  
+    } state wait_act  
+  }  
+
+
+ 
+ 
+
+  state arret_hf {
+    when ( (etat_hf == 0) && (delay(2)) ) {    
+     sprintf(dialog,"snl_arret_HF : RF a l'arret  : OK \n");
+     printf("snl_hton : RF a l'arret  : OK \n");
+     pvPut(dialog);
+     printf("snl_arret_HF : RF a l'arret  : OK \n");
+     cons_HF=0;
+     pvPut(cons_HF);
+     ma_hf=0;
+     pvPut(ma_hf);
+    } state consignes
+
+    when ( (etat_hf == 1) && (delay(2.0)) ) {
+     sprintf(dialog,"snl_arret_HF : envoi arret RF\n");
+     pvPut(dialog);
+     printf("snl_arret_HF :envoi arret RF \n");
+     ma_hf=0;
+     pvPut(ma_hf);
+     cons_HF=0;
+     pvPut(cons_HF);
+    } state arret_hf
+    when ( (action == 0) ) {
+     sprintf(dialog,"snl_ hton: RF : Action arretee ! \n");
+     pvPut(dialog);  
+     printf("snl_hton :Action arretee ! \n");   
+    } state wait_act  
+
+  } /*  fin state  arret_hf */ 
+
+
+  state consignes {
+    when ( (delay(0.1)) ) {    
+     sprintf(dialog,"snl_ hton: Envois consignes \n");
+     pvPut(dialog);
+     printf("snl_ hton: Envois consignes \n");
+     cons_IEPS=0.0;
+     pvPut(cons_IEPS);
+     cons_vht=0.0;
+     pvPut(cons_vht);
+     cons_iht=140.0;
+     pvPut(cons_iht);
+     consigne_debit_H2=2.9;
+     pvPut(consigne_debit_H2);
+    } state arrets
+    when ( (action == 0) ) {
+     sprintf(dialog,"snl_ hton: Action arretee ! \n");
+     pvPut(dialog);  
+     printf("snl_ hton: Action arretee ! \n");  
+    } state wait_act  
+  }  /*  fin state consignes  */
+
+
+  state arrets {
+    when ( (delay(0.1)) ) {    
+     sprintf(dialog,"snl_ hton: Envois arrets\n");
+     pvPut(dialog);
+     printf("snl_ hton: Envois arrets \n");
+     a_ht=1;
+     pvPut(a_ht);
+     a_IEPS=1;
+     pvPut(a_IEPS);
+
+     ferm_vanne_H2=1;
+     pvPut(ferm_vanne_H2);
+/*     init_debitm=1;
+     pvPut(init_debitm);*/
+    } state verifs_arrets
+    when ( (action == 0) ) {
+     sprintf(dialog,"Action arretee ! \n");
+     pvPut(dialog);    
+     printf("snl_ hton: Action arretee ! \n");
+    } state wait_act  
+  }  
+ 
+  state verifs_arrets {
+    when ( (marche_IEPS == 0) && (etat_ht == 0) && (delay(0.1)) ) {    
+     sprintf(dialog,"snl_ hton:HT's arretees \n");
+     pvPut(dialog);
+     printf("snl_ hton:HT's arretees \n");
+    } state demarre
+     when ( ((marche_IEPS == 1) || (etat_ht == 1)) && (delay(0.1)) ) {    
+     sprintf(dialog,"snl_ hton: Relance consignes  \n");
+     pvPut(dialog);
+     printf("snl_ hton: Relance consignes  \n");
+    } state consignes
+   when ( (action == 0) ) {
+     sprintf(dialog,"snl_ hton: Action arretee ! \n");
+     pvPut(dialog);  
+     printf("snl_ hton: Action arretee ! \n");  
+    } state wait_act  
+  }  
+
+
+  state demarre {
+    when ( (delay(2)) ) {    
+     sprintf(dialog,"snl_ hton: C'est parti ! \n");
+     pvPut(dialog);
+     printf("snl_ hton: C'est parti ! \n");
+
+    } state vanne
+   when ( (action == 0) && (delay(5))) {
+     sprintf(dialog,"snl_ hton: Action=0 ! \n");
+     pvPut(dialog);  
+     printf("snl_ hton: Action=0 !   \n");  
+    } state wait_act  
+  }  /*-----------------------------*/
+
+
+  state vanne {
+    when ( (etat_vanne_H2 == 0) && (delay(1.0)) ) {    
+     sprintf(dialog,"snl_ hton: Open Valve H2 \n");
+     pvPut(dialog);
+     printf("snl_ hton:Open Valve H2 \n");
+     ouv_vanne_H2=1;
+     pvPut(ouv_vanne_H2);
+    } state vanne           
+    when ( (etat_vanne_H2 != 0) && (delay(0.5)) ) {    
+     sprintf(dialog,"snl_ hton:Valve H2 Open  \n");
+     pvPut(dialog);
+     printf("snl_ hton:Valve H2 Open  \n");
+    } state  consigne_debit_H2          
+   when ( (action == 0) ) {
+     sprintf(dialog,"snl_ hton: Action arretee ! \n");
+     pvPut(dialog);
+     printf("snl_ hton: action = 0 (vanne ) ! \n");    
+    } state wait_act  
+  }  /*-----------------------------*/
+
+
+  state consigne_debit_H2 {
+    when ( (delay(0.1)) ) {    
+     sprintf(dialog,"snl_ hton: Envoi debit \n");
+     pvPut(dialog);
+     printf("snl_ hton: Envoi debit \n");
+     consigne_debit_H2=cons_debit0;
+     pvPut(consigne_debit_H2);
+     verif_valdebit_H2=1.0;
+     compteur_debit_H2=0;
+    } state verif0_debit_H2
+    when ( (action == 0) ) {
+     sprintf(dialog,"snl_ hton: Action arretee ! \n");
+     pvPut(dialog);  
+     printf("snl_ hton:action = 0 (debit_H2 )! \n");   
+    } state wait_act  
+  }  
+
+  state verif0_debit_H2 {
+    when ( (delay(0.1)) ) {    
+     verif_valdebit_H2=fabs((mes_debit_H2/consigne_debit_H2)-1.0);
+     sprintf(dialog,"verif=%6.2f mes=%6.2f cons=%6.2f \n",verif_valdebit_H2,mes_debit_H2,consigne_debit_H2);
+     pvPut(dialog);
+     printf("verif=%6.2f mes=%6.2f cons=%6.2f \n",verif_valdebit_H2,mes_debit_H2,consigne_debit_H2);
+     compteur_debit_H2 += 1;
+    } state verif0_debit_H2
+    when ( (verif_valdebit_H2 < 0.05) ) {    
+     sprintf(dialog,"valeur debit H2 atteinte (%6.1f pc) \n",verif_valdebit_H2*100.0);
+     pvPut(dialog);
+    } state verif_pret_IEPS
+    when ( (action == 0) ) {
+     sprintf(dialog,"Action arretee ! \n");
+     pvPut(dialog);    
+    } state wait_act  
+     when ( ( compteur_debit_H2 == 100) ) {
+     sprintf(dialog,"Renvoi consigne ! \n");
+     pvPut(dialog);    
+    } state consigne_debit_H2 
+ } 
+
+
+  state verif_pret_IEPS {
+    when ( (pret_IEPS == 1) && (delay(3.0)) ) {    
+     sprintf(dialog,"snl_hton :Pret IEPS OK \n");
+     pvPut(dialog);
+     printf("snl_hton :Pret IEPS OK \n");
+    } state marche_IEPS
+    when ( (pret_IEPS == 0) && (delay(5.0)) ) {    
+     sprintf(dialog,"snl_hton :IEPS pas prete - envoi arret \n");
+     pvPut(dialog);
+     printf("snl_hton :IEPS pas prete - envoi arret \n");
+     a_IEPS=1;
+     pvPut(a_IEPS);
+    } state verif_arret_IEPS
+    when ( (action == 0) ) {
+     sprintf(dialog,"snl_hton :Action arretee ! \n");
+     pvPut(dialog);
+     printf("snl_hton :Action arretee ! \n");    
+    } state wait_act 
+  }
+
+  state verif_arret_IEPS {
+    when ( (pret_IEPS == 0) && (delay(5.0)) ) {    
+     sprintf(dialog,"snl_hton :Arret IEPS OK \n");
+     pvPut(dialog);
+     printf("snl_hton :Arret IEPS OK \n");
+    } state reset_IEPS
+    when ( (pret_IEPS != 0) && (delay(5.0)) ) {    
+     sprintf(dialog,"snl_hton :IEPS pas encore arretee \n");
+     pvPut(dialog);
+     printf("snl_hton :IEPS pas encore arretee \n");
+    } state verif_pret_IEPS
+    when ( (action == 0) ) {
+     sprintf(dialog,"snl_hton :Action arretee ! \n");
+     pvPut(dialog); 
+     printf("snl_hton :Action arretee ! \n");   
+    } state wait_act     
+  }    
+
+  state reset_IEPS {
+    when ( (delay(3.0)) ) {    
+     sprintf(dialog,"snl_hton :Envoi reset sur IEPS \n");
+     pvPut(dialog);
+     printf("snl_hton :Envoi reset sur IEPS \n");
+     rst_IEPS=1;
+     pvPut(rst_IEPS);
+    } state marche_IEPS
+    when ( (action == 0) ) {
+     sprintf(dialog,"snl_hton :Action arretee ! \n");
+     pvPut(dialog);    
+     printf("snl_hton :Action arretee ! \n");  
+    } state wait_act  
+  }  
+
+
+
+  state marche_IEPS {
+    when ( (delay(3.0)) ) {    
+     sprintf(dialog,"snl_hton :Envoi marche sur IEPS \n");
+     pvPut(dialog);
+     printf("snl_hton :Envoi marche sur IEPS \n");
+     m_IEPS=1;
+     pvPut(m_IEPS);
+    } state verif_marche_IEPS
+    when ( (action == 0) ) {
+     sprintf(dialog,"snl_hton :Action arretee ! \n");
+     pvPut(dialog);    
+     printf("snl_hton :Action arretee ! \n");  
+    } state wait_act  
+  }  
+
+  state verif_marche_IEPS {
+    when ( (marche_IEPS ==1 ) && (delay(4.0)) ) {    
+     sprintf(dialog,"snl_hton :Marche IEPS OK \n");
+     pvPut(dialog);
+    printf("snl_hton :Marche IEPS OK \n");
+    } state reset_ht
+    when ( (marche_IEPS == 0) && (delay(5.0)) ) {    
+     sprintf(dialog,"snl_hton :IEPS pas demarree \n");
+     pvPut(dialog);
+     printf("snl_hton :IEPS pas demarree \n");
+    } state verif_pret_IEPS
+  }  
+
+
+/*  reset_ht  */
+
+  state reset_ht {
+    when ( (delay(1.0)) ) {    
+     sprintf(dialog,"snl_hton :Envoi reset sur HT \n");
+     pvPut(dialog);
+     printf("snl_hton :Envoi reset sur HT \n");
+     rst_ht=1;
+     pvPut(rst_ht);
+    } state marche_aux
+  }  
+
+  state marche_aux {
+    when ( (delay(1.0)) ) {    
+     sprintf(dialog,"snl_hton :Envoi marche sur aux. HT \n");
+     pvPut(dialog);
+     printf("snl_hton :Envoi marche sur aux. HT \n");
+     m_auxht=1;
+     pvPut(m_auxht);
+    } state marche_ht
+  }  
+
+  state marche_ht {
+    when ( (delay(1.0)) ) {    
+     sprintf(dialog,"snl_hton :Envoi marche sur HT \n");
+     pvPut(dialog);
+     printf("snl_hton :Envoi marche sur HT \n");
+     m_ht=1;
+     pvPut(m_ht);
+    } state verif_marche_ht
+  }
+    
+  state verif_marche_ht {
+    when ( (etat_ht == 1) ) {    
+     sprintf(dialog,"snl_hton :Marche HT OK \n");
+     pvPut(dialog);
+     printf("snl_hton :Marche HT OK \n");
+    } state consigne_phf
+    when ( (etat_ht == 0) && (delay(5.0)) ) {    
+     sprintf(dialog,"snl_hton :HT pas demarree, renvoi reset \n");
+     pvPut(dialog);
+     printf("snl_hton :HT pas demarree, renvoi reset \n");
+    } state reset_ht
+    when ( (action == 0) ) {
+     sprintf(dialog,"snl_hton :action arretee ! \n");
+     pvPut(dialog); 
+     printf("snl_hton :action arretee ! \n");   
+    } state wait_act  
+  } 
+
+
+/* consigne_phf   */
+ 
+
+  state consigne_phf {
+    when ( (delay(0.1)) ) {    
+     sprintf(dialog,"snl_hton : Envoi consigne gene HF \n");
+     pvPut(dialog);
+     printf("snl_hton : Envoi consigne gene HF \n");
+     cons_HF=cons_phf0;
+     pvPut(cons_HF);
+     sprintf(dialog,"snl_hton : Attendre pret HF \n");
+     pvPut(dialog);
+     printf("snl_hton :Attendre pret HF   \n");
+    } state raz_hf
+    when ( (action == 0) ) {
+     sprintf(dialog,"snl_hton : Action arretee ! \n");
+     pvPut(dialog); 
+     printf("snl_hton : Action arretee ! \n");   
+    } state wait_act  
+  }
+
+  state raz_hf {
+    when ( (delay(0.1)) ) {    
+     sprintf(dialog,"snl_hton : Envoi RAZ  HF \n");
+     pvPut(dialog);
+     printf("snl_hton : Envoi RAZ HF \n");
+     RAZ_HF = 1;
+     pvPut(RAZ_HF);
+    } state prethf
+    when ( (action == 0) ) {
+     sprintf(dialog,"snl_hton : Action arretee ! \n");
+     pvPut(dialog); 
+     printf("snl_hton : Action arretee ! \n");   
+    } state wait_act  
+  } 
+  
+
+  state prethf {
+    when ( (pret_hf == 0) && (delay(1.0)) ) {    
+     sprintf(dialog,"snl_hton : Attente pret HF \n");
+     pvPut(dialog);
+     printf("snl_hton : Attente pret HF \n");
+    } state prethf
+    when ( (pret_hf == 1) && (delay(1.0)) ) {    
+     sprintf(dialog,"snl_hton : OK pret HF \n");
+     pvPut(dialog);
+     printf("snl_hton : OK pret HF \n");
+    } state montee_ht0
+    when ( (action == 0) ) {
+     sprintf(dialog,"snl_hton : Action arretee ! \n");
+     pvPut(dialog);
+     printf("snl_hton : Action arretee ! \n");    
+    } state wait_act  
+  }  
+
+
+
+  state montee_ht0 {
+    when ( (delay(1.0)) ) {    
+     sprintf(dialog,"snl_hton : Montee HT \n");
+     pvPut(dialog);
+     printf("snl_hton : Montee HT \n");
+/*     cons_vht+=pas_ht0;
+     if (cons_vht > ht0) cons_vht=ht0;*/
+     cons_vht = HVPS0;
+     pvPut(cons_vht);
+     sprintf(dialog,"snl_hton : Envoi %6.0f kV sur HT \n",HVPS0);
+     pvPut(dialog);
+     printf("snl_hton : Envoi %6.0f kV sur HT \n",HVPS0);
+     verif_valht0=1.0;
+    } state verif_montee_ht0
+    when ( (cons_vht >= HVPS0) && (delay(0.1)) ) {
+     sprintf(dialog,"snl_hton : Valeur initiale HT atteinte \n");
+     pvPut(dialog);
+     printf("snl_hton : Valeur initiale HT atteinte \n");
+    } state montee_IEPS0
+
+    when ( (action == 0) ) {
+     sprintf(dialog,"snl_hton : Action arretee ! \n");
+     pvPut(dialog);
+     printf("snl_hton : Action arretee ! \n");    
+    } state wait_act 
+    when ( (pret_hf == 0) ) {
+     sprintf(dialog,"snl_hton : Perte du PRET HF ! \n");
+     pvPut(dialog);
+     printf("snl_hton : Perte du PRET HF  ! \n");    
+    } state fin_par_perte_du_pret_hf  
+  }  
+
+  state verif_montee_ht0 {
+    when ( (delay(0.1)) ) {    
+     verif_valht0=fabs((mes_vht/cons_vht)-1.0);
+     sprintf(dialog,"snl_hton : verif=%6.2f mes=%6.2f cons=%6.2f \n",verif_valht0,mes_vht,cons_vht);
+     pvPut(dialog);
+
+    } state verif_montee_ht0
+    when ( (verif_valht0 < 0.05) ) {    
+     sprintf(dialog,"snl_hton : Valeur HT atteinte (%6.1f pc) \n",verif_valht0*100.0);
+     pvPut(dialog);
+     printf("snl_hton : Valeur HT atteinte (%6.1f pc) \n",verif_valht0*100.0);
+    } state montee_IEPS0
+    when ( (action == 0) ) {
+     sprintf(dialog,"snl_hton : Action arretee ! \n");
+     pvPut(dialog);
+     printf("snl_hton : Action arretee ! \n");   
+    } state wait_act 
+    when ( (pret_hf == 0) ) {
+     sprintf(dialog,"snl_hton : Perte du PRET HF ! \n");
+     pvPut(dialog); 
+     printf("snl_hton : Perte du PRET HF  ! \n");   
+    } state fin_par_perte_du_pret_hf  
+  }  
+
+
+  state montee_IEPS0 {
+    when ( (delay(1.0)) ) {    
+     sprintf(dialog,"snl_hton : Montee IEPS \n");
+     pvPut(dialog);
+     printf("snl_hton : Montee IEPS \n");
+/*     cons_IEPS+=pas_htei0;
+     if (cons_IEPS > htei0) cons_IEPS=htei0;*/
+     cons_IEPS = IEPS0;
+     pvPut(cons_IEPS);
+     sprintf(dialog,"snl_hton : Envoi %6.0f kV sur IEPS \n",IEPS0);
+     pvPut(dialog);
+     printf("snl_hton : Envoi %6.0f kV sur IEPS \n",IEPS0);
+     verif_valIEPS0=1.0;
+    } state verif_montee_IEPS0
+    when ( (cons_IEPS >= IEPS0) && (delay(0.1)) ) {
+     sprintf(dialog,"snl_hton : Valeur IEPS atteinte \n");
+     pvPut(dialog);
+
+    } state montee_ht1
+    when ( (action == 0) ) {
+     sprintf(dialog,"snl_hton : Action arretee ! \n");
+     pvPut(dialog);
+     printf("snl_hton : Action arretee ! \n");    
+    } state wait_act  
+    when ( (pret_hf == 0) ) {
+     sprintf(dialog,"snl_hton : Perte du PRET HF ! \n");
+     pvPut(dialog);
+     printf("snl_hton : Perte du PRET HF  ! \n");     
+    } state fin_par_perte_du_pret_hf 
+  }  
+
+  state verif_montee_IEPS0 {
+    when ( (delay(0.1)) ) {    
+     verif_valIEPS0=fabs((mes_IEPS/cons_IEPS)-1.0);
+     sprintf(dialog,"snl_hton : verif=%6.2f mes=%6.2f cons=%6.2f \n",verif_valIEPS0,mes_IEPS,cons_IEPS);
+     pvPut(dialog);
+     printf("snl_hton : verif=%6.2f mes=%6.2f cons=%6.2f \n",verif_valIEPS0,mes_IEPS,cons_IEPS);
+    } state verif_montee_IEPS0
+    when ( (verif_valIEPS0 < 0.05) ) {    
+     sprintf(dialog,"snl_hton : valeur HTEI atteinte (%6.1f pc) \n",verif_valIEPS0*100.0);
+     pvPut(dialog);
+    printf("snl_hton : valeur HTEI atteinte (%6.1f pc) \n",verif_valIEPS0*100.0);
+    } state montee_IEPS0
+    when ( (action == 0) ) {
+     sprintf(dialog,"snl_hton : Action arretee ! \n");
+     pvPut(dialog);
+     printf("snl_hton : Action arretee ! \n");    
+    } state wait_act 
+    when ( (pret_hf == 0) ) {
+     sprintf(dialog,"snl_hton : Perte du PRET HF ! \n");
+     pvPut(dialog);
+     printf("snl_hton : Perte du PRET HF  ! \n");     
+    } state fin_par_perte_du_pret_hf  
+  }  
+
+  state montee_ht1 {
+    when ( (delay(1.0)) ) {    
+     sprintf(dialog,"snl_hton : Montee HT \n");
+     pvPut(dialog);
+     printf("snl_hton : Montee HT \n");
+/*     cons_vht+=pas_ht1;
+     if (cons_vht > ht1) cons_vht=ht1;*/
+     cons_vht = ht1;
+     pvPut(cons_vht);
+     sprintf(dialog,"snl_hton : Envoi %6.0f kV sur HT \n",ht1);
+     pvPut(dialog);
+    printf("snl_hton : Envoi %6.0f kV sur HT \n",ht1);
+     verif_valht1=1.0;
+    } state verif_montee_ht1
+    when ( (cons_vht >= ht1) && (delay(0.1)) ) {
+     sprintf(dialog,"snl_hton : Valeur finale HT atteinte \n");
+     pvPut(dialog);
+     printf("snl_hton : Valeur finale HT atteinte \n");
+    } state marche_hf
+    when ( (action == 0) ) {
+     sprintf(dialog,"snl_hton : Action arretee ! \n");
+     pvPut(dialog);
+     printf("snl_hton : Action arretee ! \n");    
+    } state wait_act 
+    when ( (pret_hf == 0) ) {
+     sprintf(dialog,"snl_hton : Perte du PRET HF ! \n");
+     pvPut(dialog); 
+     printf("snl_hton : Perte du PRET HF  ! \n");    
+    } state fin_par_perte_du_pret_hf   
+  }  
+
+  state verif_montee_ht1 {
+    when ( (delay(0.1)) ) {    
+     verif_valht1=fabs((mes_vht/cons_vht)-1.0);
+     sprintf(dialog,"snl_hton : verif=%6.2f mes=%6.2f cons=%6.2f \n",verif_valht1,mes_vht,cons_vht);
+     pvPut(dialog);
+     printf("snl_hton : verif=%6.2f mes=%6.2f cons=%6.2f \n",verif_valht1,mes_vht,cons_vht);
+    } state verif_montee_ht1
+    when ( (verif_valht1 < 0.05) ) {    
+     sprintf(dialog,"snl_hton : Valeur HT atteinte (%6.1f pc) \n",verif_valht1*100.0);
+     pvPut(dialog);
+     printf("snl_hton : Valeur HT atteinte (%6.1f pc) \n",verif_valht1*100.0);
+    } state marche_hf
+    when ( (action == 0) ) {
+     sprintf(dialog,"snl_hton : Action arretee ! \n");
+     pvPut(dialog);  
+   
+    } state wait_act  
+    when ( (pret_hf == 0) ) {
+     sprintf(dialog,"snl_hton : Perte du PRET HF ! \n");
+     pvPut(dialog);
+     printf("snl_hton : Perte du PRET HF  ! \n");    
+    } state fin_par_perte_du_pret_hf 
+  }  
+
+
+
+  state marche_hf {
+    when ( (etat_hf == 0) && (delay(1.0)) ) {    
+     sprintf(dialog,"snl_hton : HF a l'arret : envoi marche \n");
+     pvPut(dialog);
+
+     ma_hf=1;
+     pvPut(ma_hf);
+    } state marche_hf
+    when ( (etat_hf == 1) && (delay(0.5)) ) {
+     sprintf(dialog,"snl_hton : HF en marche \n");
+     pvPut(dialog);
+     printf("snl_hton : HF en marche \n");
+     verif_valHF=1.0;
+    } state verif_hf
+    when ( (action == 0) ) {
+     sprintf(dialog,"snl_hton : Action arretee ! \n");
+     pvPut(dialog); 
+     printf("snl_hton : Action arretee ! \n");   
+    } state wait_act  
+    when ( (pret_hf == 0) ) {
+     sprintf(dialog,"snl_hton : Perte du PRET HF ! \n");
+     pvPut(dialog); 
+     printf("snl_hton : Perte du PRET HF  ! \n");   
+    } state fin_par_perte_du_pret_hf 
+  }  
+
+  state verif_hf {
+    when ( (delay(1.0)) ) { 
+/*----- pour tests en mode PULSE ----*/
+     mes_HF =    cons_HF;
+
+     verif_valHF=fabs((mes_HF/cons_HF)-1.0);
+     sprintf(dialog,"snl_hton : verif=%6.2f  \n",verif_valHF);
+     pvPut(dialog);
+     printf("snl_hton : verif=%6.2f mes=%6.2f cons=%6.2f \n",verif_valHF,mes_HF,cons_HF);
+    } state verif_hf
+    when ( (verif_valHF < 0.05) ) {    
+     sprintf(dialog,"snl_hton :Val HF OK (%6.1f pc) \n",verif_valHF*100.0);
+     pvPut(dialog);
+     printf("snl_hton :Valeur HF OK (%6.1f pc) \n",verif_valHF*100.0);
+    } state  verif_faisc          
+    when ( (action == 0) ) {
+     sprintf(dialog,"snl_hton : Action arretee ! \n");
+     pvPut(dialog); 
+     printf("snl_hton : Action arretee ! \n");   
+    } state wait_act  
+    when ( (pret_hf == 0) ) {
+     sprintf(dialog,"snl_hton : Perte du PRET HF ! \n");
+     pvPut(dialog);  
+     printf("snl_hton : Perte du PRET HF  ! \n");  
+    } state fin_par_perte_du_pret_hf 
+  }  
+
+  state verif_faisc {
+
+    when ( (Icf >= imontee) && (delay(2.0)) ) {    
+     sprintf(dialog,"snl_hton :Faisceau OK sur CF\n");
+     pvPut(dialog);
+     printf("snl_hton :Faisceau OK sur CF\n");    
+    } state Retrait_CF
+    when ( (Icf < imontee) && (delay(2.0)) ) {    
+     sprintf(dialog,"snl_hton :Pas de faisceau ou insuffisant \n");
+     pvPut(dialog);
+     printf("snl_hton :Pas de faisceau ou insuffisant \n");
+     compteur+=1;
+    } state  verif_faisc          
+    when ( (action == 0) ) {
+     sprintf(dialog,"snl_hton : Action arretee ! \n");
+     pvPut(dialog);
+     printf("snl_hton : Action arretee ! \n");    
+    } state wait_act  
+    when ( (pret_hf == 0) ) {
+     sprintf(dialog,"snl_hton : Perte du PRET HF ! \n");
+     pvPut(dialog);
+     printf("snl_hton : Perte du PRET HF  ! \n");  
+    } state fin_par_perte_du_pret_hf 
+    when ( (compteur == 10) ) {
+     sprintf(dialog,"snl_hton : Perte du faisceau ! \n");
+     pvPut(dialog);
+     printf("snl_hton : Perte du faisceau ! \n");    
+    } state perte_faisceau 
+  }  
+
+  state termine {
+    when ( (delay(1.0)) ) {    
+     action=0;
+     pvPut(action);
+     sprintf(dialog,"Procedure terminee \n");
+     pvPut(dialog);
+     fin_action=0;
+     pvPut(fin_action);
+     cons_vht=0.0;
+     cons_IEPS=0.0;
+     perm_faisceau=1;
+     pvPut(perm_faisceau);
+    } state wait_act
+  }  
+
+  state fin_par_perte_du_pret_hf {
+    when ( (delay(30.0)) ) {    
+     action=0;
+     pvPut(action);
+     sprintf(dialog,"snl_hton : Procedure abortee \n");
+     pvPut(dialog);
+     printf("snl_hton : Procedure abortee \n");
+     fin_action=1;
+     pvPut(fin_action);
+     cons_vht=0.0;
+     cons_IEPS=0.0;
+     perm_faisceau=0;
+     pvPut(perm_faisceau);
+     perm_autostart=1;
+     pvPut(perm_autostart);
+    } state wait_act
+  }  
+
+  state perte_faisceau {
+    when ( (delay(1.0)) ) {    
+     action=0;
+     pvPut(action);
+     sprintf(dialog,"Relance ! \n");
+     pvPut(dialog);
+     fin_action=1;
+     pvPut(fin_action);
+     compteur=0;
+     cons_vht=0.0;
+     cons_IEPS=0.0;
+     perm_faisceau=0;
+     pvPut(perm_faisceau);
+     perm_autostart=1;
+     pvPut(perm_autostart);
+    } state wait_act
+  }  
+  
+  
+  state Retrait_CF {
+    when ( (delay(1.0)) ) { 
+     action=0;
+     pvPut(action); 
+     perm_hton=0;
+     pvPut(perm_hton);  
+     sprintf(dialog,"snl_hton : Pas de Retrait CF \n");
+     pvPut(dialog);
+     printf("snl_hton : Pas de Retrait CF -TERMINE- \n");
+/*     retrait_cf = 1;
+     pvPut(retrait_cf);*/
+    } state termine
+  }  
+
+
+
+/* fin_par_perte_du_pret_hf */
+
+
+
+
+
+
+
+  state fin_snl_hton{
+
+   when ( (action == 0) ) {
+     sprintf(dialog,"snl_ hton: Action arretee ( statefin_snl_hton ) ! \n");
+     pvPut(dialog);  
+     printf("snl_ hton: Action arretee ( state fin_snl_hton) ! \n"); 
+     perm_hton=0;
+     pvPut(perm_hton);
+     fin_action=0;
+     pvPut(fin_action); 
+    } state wait_act  
+  }  
+
+
+
+
+}/*  fin state set hton */ 
+
+
+
+
+
+
+
+
+/*______________________________________________________________________*/
+/*______________________________________________________________________*/
+
+
+ss Alims_ON_auto
+{
+
+  state connected {
+    when ( (delay(2.0)) && (pvConnectCount() == pvChannelCount()) ) {
+     sprintf(dialog,"snl_Alims_ON_auto :OK Connexions PVs \n");
+       pvPut(dialog);
+       printf(" snl_Alims_ON_auto :OK Connexions PVs\n");
+    } state wait_act
+  }  /*  fin state connect */
+
+    state wait_act {
+    when  (action_alims == 1)  {
+     sprintf(dialog,"Auto start for Coils and Solenoids\n");
+     pvPut(dialog);
+     printf("Auto start for Coils and Solenoids\n");
+
+     verif_C1PS=fabs((imesC1PS/iconsC1PS)-1.0);
+     verif_C2PS=fabs((imesC2PS/iconsC2PS)-1.0);
+/*----verif ecran????-------------------------------------*/
+     verif_SOL01_PS=fabs((imesSOL01_PS/iconsSOL01_PS)-1.0);
+     verif_SOL02_PS=fabs((imesSOL02_PS/iconsSOL02_PS)-1.0); 
+
+/*     action_alims =0;
+     pvPut(action_alims);  */
+
+    } state COIL01_PS
+
+    when ( (action_alims == 0) && (delay(2)) ) {
+/*     action=0;
+     pvPut(action);
+     sprintf(dialog,"snl_Alims_ON_auto : Action arrete ! \n");
+     pvPut(dialog); 
+     printf("snl_Alims_ON_auto: Action montee alims arrete ! \n");*/
+    } state wait_act
+
+
+  }/*  fin state wait_act  */ 
+
+
+
+
+  state COIL01_PS {
+    when ( (etat_C1PS == 1) && (verif_C1PS <= 0.05) && (delay(0.1)) ) {    
+     sprintf(dialog,"snl_Alims_ON_auto : Coil 1 OK \n");
+     pvPut(dialog);
+     printf("snl_Alims_ON_auto : Coil 1 OK \n");
+    } state COIL02_PS
+
+    when ( ((etat_C1PS == 0) || (verif_C1PS >= 0.05)) && (delay(2.0)) ) {
+     sprintf(dialog,"snl_Alims_ON_auto : Verifier Coil 1 \n");
+     pvPut(dialog);
+     printf("snl_Alims_ON_auto : Verifier Coil 1 \n");
+     verif_C1PS=fabs((imesC1PS/iconsC1PS)-1.0);
+    } state RST_COIL01_PS
+
+    when ( (action_alims == 0) ) {
+     sprintf(dialog,"Action Stopped ! \n");
+     pvPut(dialog);   
+     printf("Action Stopped ! \n"); 
+    } state wait_act 
+ 
+  } /*  fin state  COIL01_PS */   
+
+  state  RST_COIL01_PS  {
+
+    when (  (delay(1.0)) ) {   
+     rst_C1PS=1;
+     pvPut(rst_C1PS);
+     /*taskDelay(200);*/
+	 delay(2.0);
+     printf("snl_Alims_ON_auto :fin delay1: 200   \n");
+     /*taskDelay(200);*/
+	 delay(2.0);
+     printf("snl_Alims_ON_auto :fin delay2: 200   \n");
+     sprintf(dialog," snl_Alims_ON_auto: Reset C1  \n");
+     pvPut(dialog);
+     printf("snl_Alims_ON_auto :Reset Coil 1   \n");
+
+    } state ON_COIL01_PS
+
+    when ( (action_alims == 0) ) {
+     sprintf(dialog,"Action Stopped ! \n");
+     pvPut(dialog);   
+     printf("Action Stopped ! \n"); 
+    } state wait_act  
+
+  } /*  fin state RST_COIL01_PS */ 
+
+
+  state  ON_COIL01_PS  {
+
+    when (  (delay(5.0)) ) {   
+     m_C1PS=1;
+     pvPut(m_C1PS);
+     /*taskDelay(200);*/
+	 delay(2.0);
+     printf("snl_Alims_ON_auto :fin delay1: 200   \n");
+     /*taskDelay(200);*/
+	 delay(2.0);
+     printf("snl_Alims_ON_auto :fin delay2: 200   \n");
+     sprintf(dialog," snl_Alims_ON_auto: Marche C1  \n");
+     pvPut(dialog);
+     printf("snl_Alims_ON_auto :Marche Coil 1   \n");
+     consigne_C1 = iconsC1PS;
+     iconsC1PS = consigne_C1;
+     pvPut(iconsC1PS);
+     printf("snl_Alims_ON_auto :I(C1)=%6.2f  \n",iconsC1PS);
+     verif_C1PS=fabs((imesC1PS/iconsC1PS)-1.0);
+    } state VERIF_COIL01_PS
+
+    when ( (action_alims == 0) ) {
+     sprintf(dialog,"Action Stopped ! \n");
+     pvPut(dialog);   
+     printf("Action Stopped ! \n"); 
+    } state wait_act  
+
+  } /*  fin state ON_COIL01_PS */ 
+
+
+  state VERIF_COIL01_PS {
+    when ( (etat_C1PS == 1) && (verif_C1PS <= 0.05) && (delay(2)) ) {    
+     sprintf(dialog,"snl_Alims_ON_auto : Coil 1 OK \n");
+     pvPut(dialog);
+     printf("snl_Alims_ON_auto : Coil 1 OK \n");
+    } state COIL02_PS
+
+    when ( (verif_C1PS >= 0.05)&& (delay(2.0)) ) {
+     sprintf(dialog,"Verify Coil01 \n");
+     pvPut(dialog);
+     printf("snl_Alims_ON_auto : Verifier Coil 1 \n");
+     verif_C1PS=fabs((imesC1PS/iconsC1PS)-1.0);
+    } state VERIF_COIL01_PS
+
+    when ( (action_alims == 0) ) {
+     sprintf(dialog,"Action Stopped ! \n");
+     pvPut(dialog);   
+     printf("Action Stopped ! \n"); 
+    } state wait_act 
+ 
+  } /*  fin state  VERIF_COIL01_PS */ 
+
+
+ 
+
+
+  state COIL02_PS {
+    when ( (etat_C2PS == 1) && (verif_C2PS <= 0.05) && (delay(2)) ) {    
+     sprintf(dialog,"snl_Alims_ON_auto : Coil 2 OK \n");
+     pvPut(dialog);
+     printf("snl_Alims_ON_auto : Coil 2 OK \n");
+    } state SOL01_PS
+
+    when ( ((etat_C2PS == 0) || (verif_C2PS >= 0.05)) && (delay(2.0)) ) {
+     sprintf(dialog,"snl_Alims_ON_auto : Verifier Coil 2 \n");
+     pvPut(dialog);
+     printf("snl_Alims_ON_auto : Verifier Coil 2 \n");
+     verif_C2PS=fabs((imesC2PS/iconsC2PS)-1.0);
+    } state RST_COIL02_PS
+
+    when ( (action_alims == 0) ) {
+     sprintf(dialog,"Action Stopped ! \n");
+     pvPut(dialog);   
+     printf("Action Stopped ! \n"); 
+    } state wait_act 
+ 
+  } /*  fin state  COIL02_PS */   
+
+
+  state  RST_COIL02_PS  {
+
+    when (  (delay(5.0)) ) {   
+     rst_C2PS=1;
+     pvPut(rst_C2PS);
+     /*taskDelay(200);*/
+	 delay(2.0);
+     printf("snl_Alims_ON_auto :fin delay1: 200   \n");
+     /*taskDelay(200);*/
+	 delay(2.0);
+     printf("snl_Alims_ON_auto :fin delay2: 200   \n");
+     sprintf(dialog," snl_Alims_ON_auto: Reset C2  \n");
+     pvPut(dialog);
+     printf("snl_Alims_ON_auto :Reset Coil 2   \n");
+
+    } state ON_COIL02_PS
+
+    when ( (action_alims == 0) ) {
+     sprintf(dialog,"Action Stopped ! \n");
+     pvPut(dialog);   
+     printf("Action Stopped ! \n"); 
+    } state wait_act  
+
+  } /*  fin state RST_COIL02_PS */ 
+
+
+
+
+
+  state  ON_COIL02_PS  {
+
+    when (  (delay(5.0)) ) {   
+     m_C2PS=1;
+     pvPut(m_C2PS);
+     /*taskDelay(200);*/ 
+	 delay(2.0);
+     printf("snl_Alims_ON_auto :fin delay1: 200   \n");
+     /*taskDelay(200);*/
+	 delay(2.0);
+     printf("snl_Alims_ON_auto :fin delay2: 200   \n");
+     sprintf(dialog," snl_Alims_ON_auto: Marche C2  \n");
+     pvPut(dialog);
+     printf("snl_Alims_ON_auto :Marche Coil 2   \n");
+     consigne_C2 = iconsC2PS;
+     iconsC2PS = consigne_C2;
+     pvPut(iconsC2PS);
+     printf("snl_Alims_ON_auto :I(C2)=%6.2f  \n",iconsC2PS);
+     verif_C2PS=fabs((imesC2PS/iconsC2PS)-1.0);
+    } state VERIF_COIL02_PS
+
+    when ( (action_alims == 0) ) {
+     sprintf(dialog,"Action Stopped ! \n");
+     pvPut(dialog);   
+     printf(" Action Stopped! \n"); 
+    } state wait_act  
+
+  } /*  fin state ON_COIL02_PS */  
+
+
+  state VERIF_COIL02_PS {
+    when ( (etat_C2PS == 1) && (verif_C2PS <= 0.05) && (delay(0.1)) ) {    
+     sprintf(dialog,"snl_Alims_ON_auto : Coil 2 OK \n");
+     pvPut(dialog);
+     printf("snl_Alims_ON_auto : Coil 2 OK \n");
+    } state SOL01_PS
+
+    when ( (verif_C2PS >= 0.05)&& (delay(2.0)) ) {
+     sprintf(dialog,"snl_Alims_ON_auto : Verifier Coil 2 \n");
+     pvPut(dialog);
+     printf("snl_Alims_ON_auto : Verifier Coil 2 \n");
+     verif_C2PS=fabs((imesC2PS/iconsC2PS)-1.0);
+    } state VERIF_COIL02_PS
+
+    when ( (action_alims == 0) ) {
+     sprintf(dialog,"snl_Alims_ON_auto : Action arretee ! \n");
+     pvPut(dialog);   
+     printf("snl_Alims_ON_auto : Action arretee ! \n"); 
+    } state wait_act 
+ 
+  } /*  fin state  VERIF_COIL02_PS */ 
+
+
+
+  state  SOL01_PS {
+    when ( (etat_SOL01_PS == 1) && (verif_SOL01_PS <= 0.05) && (delay(0.1)) ) {    
+     sprintf(dialog,"snl_Alims_ON_auto : SOL 1 OK \n");
+     pvPut(dialog);
+     printf("snl_Alims_ON_auto : SOL 1 OK \n");
+    } state SOL02_PS
+
+    when ( ((etat_SOL01_PS == 0) || (verif_SOL01_PS >= 0.05)) && (delay(2.0)) ) {
+     sprintf(dialog,"snl_Alims_ON_auto : Verifier SOL 1 \n");
+     pvPut(dialog);
+     printf("snl_Alims_ON_auto : Verifier SOL 1 \n");
+     verif_SOL01_PS=fabs((imesSOL01_PS/iconsSOL01_PS)-1.0);
+    } state RST_SOL01_PS
+
+    when ( (action_alims == 0) ) {
+     sprintf(dialog,"snl_Alims_ON_auto : Action arretee ! \n");
+     pvPut(dialog);   
+     printf("snl_Alims_ON_auto : Action arretee ! \n"); 
+    } state wait_act 
+ 
+  } /*  fin state  SOL01_PS */ 
+
+  state RST_SOL01_PS {
+
+    when (  (delay(5.0)) ) {   
+     rst_SOL01PS=1;
+     pvPut(rst_SOL01PS);
+     /*taskDelay(200);*/ 
+	 delay(2.0);
+     printf("snl_Alims_ON_auto :fin delay1: 200   \n");
+     /*taskDelay(200);*/
+	 delay(2.0);
+     printf("snl_Alims_ON_auto :fin delay2: 200   \n");
+     sprintf(dialog,"snl_Alims_ON_auto: Reset SOL1(1) \n");
+     pvPut(dialog);
+     printf("snl_Alims_ON_auto: Reset SOL1(1) \n");
+
+    } state ON_SOL01_PS
+
+    when ( (action_alims == 0) ) {
+     sprintf(dialog,"snl_Alims_ON_auto: Action arretee ! \n");
+     pvPut(dialog);   
+     printf("snl_Alims_ON_auto: Action arretee ! \n"); 
+    } state wait_act 
+ 
+  } /*  fin state  RST_SOL01_PS */ 
+
+
+
+  state ON_SOL01_PS {
+
+    when (  (delay(5.0)) ) {   
+     m_SOL01PS=1;
+     pvPut(m_SOL01PS);
+     /*taskDelay(200);*/ 
+	 delay(2.0);
+     printf("snl_Alims_ON_auto :fin delay1: 200   \n");
+     /*taskDelay(200);*/
+	 delay(2.0);
+     sprintf(dialog,"snl_Alims_ON_auto: Marche SOL1(1) \n");
+     pvPut(dialog);
+     printf("snl_Alims_ON_auto: Marche SOL1(1) \n");
+
+    } state double_ON_SOL01_PS
+
+    when ( (action_alims == 0) ) {
+     sprintf(dialog,"snl_Alims_ON_auto: Action arretee ! \n");
+     pvPut(dialog);   
+     printf("snl_Alims_ON_auto: Action arretee ! \n"); 
+    } state wait_act 
+ 
+  } /*  fin state  ON_SOL01_PS */ 
+
+  state  double_ON_SOL01_PS {
+
+    when (  (delay(5.0)) ) {   
+     m_SOL01PS=1;
+     pvPut(m_SOL01PS);
+     /*taskDelay(200);*/ 
+	 delay(2.0);
+     printf("snl_Alims_ON_auto :fin delay1: 200   \n");
+     /*taskDelay(200);*/
+	 delay(2.0);
+     printf("snl_Alims_ON_auto :fin delay2: 200   \n");  
+     sprintf(dialog,"snl_Alims_ON_auto: Marche SOL1(2) \n");
+     pvPut(dialog);
+     printf("snl_Alims_ON_auto: Marche SOL1(2)   \n");
+     consigne_SOL1 = iconsSOL01_PS;
+     iconsSOL01_PS = consigne_SOL1;
+     pvPut(iconsSOL01_PS);
+     printf("snl_Alims_ON_auto :I(SOL01)=%6.2f  \n",iconsSOL01_PS);
+     verif_SOL01_PS=fabs((imesSOL01_PS/iconsSOL01_PS)-1.0);
+    } state VERIF_SOL01_PS
+
+    when ( (action_alims == 0) ) {
+     sprintf(dialog,"snl_Alims_ON_auto: Action arretee ! \n");
+     pvPut(dialog);   
+     printf("snl_Alims_ON_auto: Action arretee ! \n"); 
+    } state wait_act  
+
+  } /*  fin state  double_ON_SOL01_PS */ 
+
+
+  state VERIF_SOL01_PS {
+    when ( (etat_SOL01_PS == 1) && (verif_SOL01_PS <= 0.05) && (delay(0.1)) ) {    
+     sprintf(dialog,"snl_Alims_ON_auto : SOL 1 OK \n");
+     pvPut(dialog);
+     printf("snl_Alims_ON_auto : SOL1 OK \n");
+    } state SOL02_PS
+
+    when ( (verif_SOL01_PS >= 0.05)&& (delay(2.0)) ) {
+     sprintf(dialog,"snl_Alims_ON_auto : Verifier Sol 1 \n");
+     pvPut(dialog);
+     printf("snl_Alims_ON_auto : Verifier Sol 1 \n");
+     verif_SOL01_PS=fabs((imesSOL01_PS/iconsSOL01_PS)-1.0);
+    } state VERIF_SOL01_PS
+
+    when ( (action_alims == 0) ) {
+     sprintf(dialog,"snl_Alims_ON_auto : Action arretee ! \n");
+     pvPut(dialog);   
+     printf("snl_Alims_ON_auto : Action arretee ! \n"); 
+    } state wait_act 
+ 
+  } /*  fin state  VERIF_SOL01_PS */ 
+
+
+
+
+
+  state  SOL02_PS {
+    when ( (etat_SOL02_PS == 1) && (verif_SOL02_PS <= 0.05) && (delay(0.1)) ) {    
+     sprintf(dialog,"snl_Alims_ON_auto : SOL 2 OK \n");
+     pvPut(dialog);
+     printf("snl_Alims_ON_auto : SOL 2 OK \n");
+    } state Fin_Montee_Alims
+
+    when ( ((etat_SOL02_PS == 0) || (verif_SOL02_PS >= 0.05)) && (delay(2.0)) ) {
+     sprintf(dialog,"snl_Alims_ON_auto : Verifier SOL 2 \n");
+     pvPut(dialog);
+     printf("snl_Alims_ON_auto : Verifier SOL 2 \n");
+     verif_SOL02_PS=fabs((imesSOL02_PS/iconsSOL02_PS)-1.0);
+    } state RST_SOL02_PS
+
+    when ( (action_alims == 0) ) {
+     sprintf(dialog,"snl_Alims_ON_auto : Action arretee ! \n");
+     pvPut(dialog);   
+     printf("snl_Alims_ON_auto : Action arretee ! \n"); 
+    } state wait_act 
+ 
+  } /*  fin state  SOL02_PS */ 
+
+  state RST_SOL02_PS {
+
+    when (  (delay(5.0)) ) {   
+     rst_SOL02PS=1;
+     pvPut(rst_SOL02PS);
+     /*taskDelay(200);*/
+     delay(2.0);	 
+     printf("snl_Alims_ON_auto :fin delay1: 200   \n");
+     /*taskDelay(200);*/
+	 delay(2.0);
+     printf("snl_Alims_ON_auto :fin delay2: 200   \n");  
+     sprintf(dialog,"snl_Alims_ON_auto: Reset SOL2 \n");
+     pvPut(dialog);
+     printf("snl_Alims_ON_auto: Reset SOL2 \n");
+
+    } state ON_SOL02_PS
+
+    when ( (action_alims == 0) ) {
+     sprintf(dialog,"snl_Alims_ON_auto: Action arretee ! \n");
+     pvPut(dialog);   
+     printf("snl_Alims_ON_auto: Action arretee ! \n"); 
+    } state wait_act 
+ 
+  } /*  fin state  RST_SOL02_PS */ 
+
+
+  state ON_SOL02_PS {
+
+    when (  (delay(5.0)) ) {   
+     m_SOL02PS=1;
+     pvPut(m_SOL02PS);
+     /*taskDelay(200);*/ 
+	 delay(2.0);
+     printf("snl_Alims_ON_auto :fin delay1: 200   \n");
+     /*taskDelay(200);*/ 
+	 delay(2.0);
+     sprintf(dialog,"snl_Alims_ON_auto: Marche SOL2(1) \n");
+     pvPut(dialog);
+     printf("snl_Alims_ON_auto: Marche SOL2(1) \n");
+    } state double_ON_SOL02_PS
+
+    when ( (action_alims == 0) ) {
+     sprintf(dialog,"snl_Alims_ON_auto: Action arretee ! \n");
+     pvPut(dialog);   
+     printf("snl_Alims_ON_auto: Action arretee ! \n"); 
+    } state wait_act 
+ 
+  } /*  fin state  ON_SOL02_PS */ 
+
+  state  double_ON_SOL02_PS {
+
+    when (  (delay(5.0)) ) {   
+     m_SOL02PS=1;
+     pvPut(m_SOL02PS);
+     /*taskDelay(200);*/ 
+	 delay(2.0);
+     printf("snl_Alims_ON_auto :fin delay1: 200   \n");
+     /*taskDelay(200);*/
+	 delay(2.0);
+     printf("snl_Alims_ON_auto :fin delay2: 200   \n");  
+     sprintf(dialog,"snl_Alims_ON_auto: Marche SOL2(2) \n");
+     pvPut(dialog);
+     printf("snl_Alims_ON_auto: Marche SOL2(2)   \n");
+     consigne_SOL2 = iconsSOL02_PS;
+     iconsSOL02_PS = consigne_SOL2;
+     pvPut(iconsSOL02_PS);
+     printf("snl_Alims_ON_auto :I(SOL02)=%6.2f  \n",iconsSOL02_PS);
+     verif_SOL02_PS=fabs((imesSOL02_PS/iconsSOL02_PS)-1.0);
+    } state VERIFICATION_SOL02_PS
+
+    when ( (action_alims == 0) ) {
+     sprintf(dialog,"snl_Alims_ON_auto: Action arretee ! \n");
+     pvPut(dialog);   
+     printf("snl_Alims_ON_auto: Action arretee ! \n"); 
+    } state wait_act  
+
+  } /*  fin state  double_ON_SOL02_PS */ 
+
+
+
+  state VERIFICATION_SOL02_PS {
+    when ( (etat_SOL02_PS == 1) && (verif_SOL02_PS <= 0.05) && (delay(0.1)) ) {    
+     sprintf(dialog,"snl_Alims_ON_auto : SOL 2 OK \n");
+     pvPut(dialog);
+     printf("snl_Alims_ON_auto : SOL2 OK \n");
+    } state Fin_Montee_Alims
+
+    when ( (verif_SOL02_PS >= 0.05)&& (delay(2.0)) ) {
+     sprintf(dialog,"snl_Alims_ON_auto : Verifier Sol 2 \n");
+     pvPut(dialog);
+     printf("snl_Alims_ON_auto : Verifier Sol 2\n");
+     verif_SOL02_PS=fabs((imesSOL02_PS/iconsSOL02_PS)-1.0);
+    } state VERIFICATION_SOL02_PS
+
+    when ( (action_alims == 0) ) {
+     sprintf(dialog,"snl_Alims_ON_auto : Action arretee ! \n");
+     pvPut(dialog);   
+     printf("snl_Alims_ON_auto : Action arretee ! \n"); 
+    } state wait_act 
+ 
+  } /*  fin state  VERIFICATION_SOL02_PS */ 
+
+
+
+
+
+
+
+
+  state  Fin_Montee_Alims {
+
+   when ( delay(2) ) {
+     sprintf(dialog,"snl_Alims_ON_auto: FIN (  ) ! \n");
+     pvPut(dialog);  
+     printf("snl_Alims_ON_auto: FIN ( ) ! \n"); 
+     action_alims = 0;
+     pvPut(action_alims);
+    } state wait_act  
+  }  
+
+
+}          /*  fin state set Alims_ON_auto  */ 

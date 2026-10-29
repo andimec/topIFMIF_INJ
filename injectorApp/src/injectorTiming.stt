@@ -1,0 +1,438 @@
+/*
+#  C.E.A. IRFU/SIS/LDISC
+#
+# Version 16 Novembre 2011 
+#     D. BOGARD
+*/
+/*
+*-----------------------------------------------------------
+*   IFMIF/EVEDA Injector:  Modification 15.December.2015
+*   Coupling source delay and chopper delay for coherency with acquisition app
+*
+*   Final state:
+*  ts:TYPMEM_00 : repetition
+*  tr:LUT1   :   Delay Chopper (coupled with delay source)
+*  tr:LUT2   :   Length Chopper
+*  tr:LUT3   :   Acquisition Ret1
+*  tr:LUT4   :   Acquisition Ret3
+*  tr:LUT5   :   Delay start signal source
+*  tr:LUT6   :   end fin signal source
+*  tr:LUT7   :   Not used
+*  tr:LUT8   :   Not used
+*
+*
+*
+*-----------------------------------------------------------------------
+*   IFMIF/EVEDA Injecteur:
+*   snl_Timing : programme SNL pour la gestion du timing de la source
+*            gestion du systeme de timing JAEA
+*          18 Juillet 2012
+*  ts:TYPMEM_00 : repetition
+*  tr:LUT1   :   Retard Chopper (par rapport au debut pulse source)
+*  tr:LUT2   :   Duree Chopper
+*  tr:LUT3   :
+*  tr:LUT4   :
+*  tr:LUT5   :   Impulsion debut signal source
+*  tr:LUT6   :   Impulsion fin signal source
+*  tr:LUT7   :   Impulsion Declenchement acquisitions
+*  tr:LUT8   :   Non utilise
+*-----------------------------------------------------------------------
+*      Modification 24 Oct 2011 :
+*  tr:LUT1   : Impulsion debut signal source   
+*  tr:LUT2   : Impulsion fin signal source  
+*  tr:LUT3   : Impulsion Declenchement acquisitions
+*  tr:LUT4   : Non utilise
+*/
+
+/* program snlTiming*/
+
+program injectorTiming
+
+
+string dialog;
+assign dialog to "SRC:TIM:Dialog";
+
+
+unsigned int typMem0[512];
+assign typMem0 to "ts:TYPMEM_00"; 
+monitor typMem0; 
+
+
+unsigned int LUT1[256];
+assign LUT1 to "tr:LUT1"; 
+monitor LUT1;
+
+unsigned int LUT2[256];
+assign LUT2 to "tr:LUT2"; 
+monitor LUT2;
+
+unsigned int LUT3[256];
+assign LUT3 to "tr:LUT3"; 
+monitor LUT3;
+
+unsigned int LUT4[256];
+assign LUT4 to "tr:LUT4"; 
+monitor LUT4;
+
+unsigned int LUT5[256];
+assign LUT5 to "tr:LUT5"; 
+monitor LUT5;
+
+unsigned int LUT6[256];
+assign LUT6 to "tr:LUT6"; 
+monitor LUT6;
+
+unsigned int LUT7[256];
+assign LUT7 to "tr:LUT7"; 
+monitor LUT7;
+
+unsigned int LUT8[256];
+assign LUT8 to "tr:LUT8"; 
+monitor LUT8;
+
+float Tpulse;
+assign Tpulse  to "SRC:TIM:TPulse"; 
+monitor Tpulse;
+
+float Retpulse;
+assign Retpulse  to "SRC:TIM:RetPulse"; 
+monitor Retpulse;
+
+float Tchopper;
+assign Tchopper  to "SRC:TIM:TChopper"; 
+monitor Tchopper;
+
+float Retchopper;
+assign Retchopper  to "SRC:TIM:RetChopper"; 
+monitor Retchopper;
+
+float Ret1;
+assign Ret1  to "SRC:TIM:Ret1"; 
+monitor Ret1;
+
+float Ret2;
+assign Ret2  to "SRC:TIM:Ret2"; 
+monitor Ret2;
+
+float Ret3;
+assign Ret3  to "SRC:TIM:Ret3"; 
+monitor Ret3;
+
+float Trep;
+assign Trep  to "SRC:TIM:Trep"; 
+monitor Trep;
+
+short Modifs_OK;
+assign Modifs_OK to "SRC:TIM:OK";
+monitor Modifs_OK;
+
+
+short INIT;
+assign INIT to "SRC:TIM:Init";
+monitor INIT;
+
+
+/*short Mode_CW;
+assign  Mode_CW to "SRC:TIM:Mode_CW";
+monitor Mode_CW;*/
+
+short Mode_CW;
+assign  Mode_CW to "SRC:TIM:Mode";
+monitor Mode_CW;
+
+int Nb_Elem;
+assign Nb_Elem to "tr:LUT1.NELM";
+
+
+unsigned long Value;
+unsigned long Val;
+unsigned long Delay;
+short i;
+short intervalles;
+short Timing_OK;
+
+
+ss ss1
+{
+	
+        state connected {
+             when ( (delay(2.0)) && (pvConnectCount() == pvChannelCount()) ) {
+              printf("SNL_TIMING : connexions etablies \n");
+              sprintf(dialog,"SNL_TIMING : connexions etablies \n");
+              pvPut(dialog);             
+             } state suite_1
+       }/*  fin state connect */
+
+
+
+	    	 
+	
+	state suite_1
+		   {
+		      when ( (Modifs_OK) == 1) {
+                         printf("Modification Timing en cours; \n");
+                         sprintf(dialog,"SNL_TIMING : Modifications en cours; \n");
+                         pvPut(dialog); 
+/*                         Modifs_OK = 0;
+                         pvPut(Modifs_OK); */
+
+                         if (Trep < 20) {
+                            Trep = 20;
+                         }
+                         Value = (Trep / 20); /* pas de 20 ms */
+                         printf(" Repetition = %d *20 ms\n",Value);
+
+                         Val = 0xF0000000;
+                         for(i=2;i<512;i++) {
+                           typMem0[i]=Val;
+                         }
+                         Val = 0x01000000;
+                         typMem0[0]=Val;  
+                         Value = 0;
+                         intervalles = (Trep / 20) - 1;
+                         printf(" intervalles  = %d\n",intervalles);
+                         if (i > 0){
+                            for(i=0;i<intervalles;i++) {
+                               typMem0[i+1]=0;
+                            }
+
+                         }
+                      for(i=0;i<50;i++) {
+                        printf(" TYPMEM[%d] = %d\n",i,typMem0[i]);
+                      }
+                       pvPut(typMem0); 
+/*---- Mode Pulse ----*/
+                         if ((Mode_CW)==0) {
+
+                           printf(" ****Retard SOURCE = %f\n",Retpulse);
+                           Value = (Retpulse * 1000 * 96);
+                           LUT5[1]=Value;                              
+                           printf(" ****value = %f\n",Value);
+                           Value = (Tpulse * 1000 * 96);
+                           printf(" ****Duree SOURCE = %f\n",Tpulse);
+                           Value = (Tpulse + Retpulse) * 1000 * 96;
+                           printf(" ****value = %f\n",Value);
+                           LUT6[1]=Value;                             
+
+
+/*----- Ret1 : retard acquisitions ----*/
+                           Value = (Retpulse  + Ret1);
+                           printf(" RETARD 1 = %d \n",Value);
+                           Value = (Retpulse  + Ret1) * 1000 * 96;
+                           
+                           LUT3[1]=Value;
+ 
+/*----- Ret3 : retard acquisitions ----*/
+                           Value = (Retpulse  + Ret3 );
+                           printf(" RETARD 3 = %d \n",Value);
+                           Value = (Retpulse  + Ret3 )* 1000 * 96;
+
+                           LUT4[1]=Value;
+
+/*----- retard et duree Chopper ----*/
+                           printf(" RETARD SOURCE = %f\n",Retpulse);
+                           Value = (Retchopper);
+                           printf(" DELAY Chopper = %f\n",Value);
+                           Value = (Retchopper+ Retpulse);
+                           printf(" DELAY Source+Chopper = %f\n",Value);
+                           Value = ((Retchopper + Retpulse)* 1000 * 96);
+                    /*----          Value = ((Retchopper)* 1000 * 96);  ---*/
+                           LUT1[1]=Value;                              
+
+                           Value = Tchopper * 1000 * 96;
+                           printf(" LENGTH Chopper = %f\n",Tchopper);
+                           Value = (Tchopper + Retchopper+ Retpulse) * 1000 * 96;
+        	/*------          Value = (Tchopper + Retchopper) * 1000 * 96;    ----*/
+                           LUT2[1]=Value;                              
+
+
+/*----- Envoi ----*/
+                           pvPut(LUT1);
+                           pvPut(LUT2);     
+                           pvPut(LUT3);
+                           pvPut(LUT4);
+                           pvPut(LUT5);
+                           pvPut(LUT6);
+                         Modifs_OK = 0;
+                         pvPut(Modifs_OK); 
+                         sprintf(dialog,"SNL_TIMING : Modifications OK; \n");
+                         pvPut(dialog); 
+                         }
+/*---- Mode CW ----*/
+                         if ((Mode_CW)==1) {
+                         sprintf(dialog,"SNL_TIMING : passage mode CW; \n");
+                         pvPut(dialog); 
+                           Value = (Retpulse * 1000 * 96);
+                           printf(" CW ModeRetard Source = %d\n",Retpulse);
+                           LUT5[1]=Value + 0x40000000;              
+
+                           Value = Tpulse * 1000 * 96;
+                           printf(" CW ModeDuree Source = %d\n",Tpulse);
+                           Value = (Tpulse + Retpulse) * 1000 * 96;
+                           LUT6[1]=Value + 0x40000000;  
+
+                           Value = ((Retchopper+ Retpulse)* 1000 * 96);
+                           printf(" RETARD Chopper = %f \n",(Retchopper+ Retpulse));
+                           LUT1[1]=Value;                              
+
+                           Value = Tchopper * 1000 * 96;
+                           printf(" DUREE Chopper = %f \n",Tchopper);
+                           Value = (Tchopper + Retchopper + Retpulse) * 1000 * 96;
+                           LUT2[1]=Value; 
+             
+
+
+/*----- Envoi ----*/ 
+
+                           pvPut(LUT5);
+                           pvPut(LUT6);
+                           pvPut(LUT1);
+                           pvPut(LUT2);
+
+                         Modifs_OK = 0;
+                         pvPut(Modifs_OK);
+
+                         } 
+
+                 
+			
+                      } state suite_2
+	           }/*  fin state suite_1 */
+	
+	state suite_2
+		{
+	    	  when (delay(0.5)) {
+ /*                 printf("Suite (nouvelle lecture) \n");*/
+                    sprintf(dialog," \n");
+                    pvPut(dialog);
+                  } state suite_1
+		}/*  fin state suite_2 */
+}/*  fin state set ss1 */
+
+
+
+ss ss2
+{
+
+        state connected {
+             when ( (delay(2.0)) && (pvConnectCount() == pvChannelCount()) ) {
+              printf("SNL_TIMING : connexions etablies \n");
+             
+             } state init_tables
+       }/*  fin state connect */
+
+        state init_tables
+              {
+                when ((delay(1)) && (INIT == 1)) {
+                  printf(" Initialisation des tables en cours \n");
+                  Value = 0xF0000000;
+                  for(i=2;i<512;i++) {
+                     typMem0[i]=Value;
+                  }
+                  Value = 0x01000000;
+                  typMem0[0]=Value;  
+                  Value = 0;
+                  for(i=1;i<50;i++) {
+                  typMem0[i]=0;
+/*                    printf(" TYPMEM[%d] = %d\n",i,typMem0[i]);*/
+                  }
+                  pvPut(typMem0); 
+                  for(i=0;i<30;i++) {
+ /*                    printf(" TYPMEM[%d] = %d\n",i,typMem0[i]);*/
+                  }
+
+                  Value = 0;
+                  for(i=0;i<256;i++) {
+                     LUT1[i]=Value;
+                     LUT2[i]=Value;
+                     LUT3[i]=Value;
+                     LUT4[i]=Value;
+                     LUT5[i]=Value;
+                     LUT6[i]=Value;
+                     LUT7[i]=Value;
+                     LUT8[i]=Value;
+                  }
+
+
+ 
+/* LUT1  96 = 1 micros*/
+
+                        Val =0x40000000 ;
+                        Delay = 96;
+                        LUT1[0]=Val;
+                        LUT1[1]=Delay;
+                        pvPut(LUT1);
+
+/* LUT2  480000 = 5 ms*/
+
+                        Val =0x40000000 ;
+                        Delay = 480000;
+                        LUT2[0]=Val;
+                        LUT2[1]=Delay;
+                        pvPut(LUT2);
+
+
+/* LUT3  10560 = 110 micros */
+                        Val =0x40000000 ;
+                        Delay = 10560;
+                        LUT3[0]=Val;
+                        LUT3[1]=Delay;
+                        pvPut(LUT3);
+/* LUT4  96000 = 1 ms */
+                        Val = 0x40000000;
+                        Delay = 96000;
+                        LUT4[0]=Val;
+                        LUT4[1]=Delay;
+                        pvPut(LUT4); 
+/* LUT5  192000 = 2 ms */
+                        Val = 0x40000000;
+                        Delay = 192000;
+                        LUT5[0]=Val;
+                        LUT5[1]=Delay;
+                        pvPut(LUT5);
+/* LUT6  1152000 = 12 ms */ 
+                        Val = 0x40000000;   /*Value = 2.14748e+09;*/
+                        Delay = 1152000;
+                        LUT6[0]=Val;
+                        LUT6[1]=Delay;
+                        pvPut(LUT6);
+
+
+/* LUT7  2112000 = 22 ms */
+/* si delay > 20 ms alors val = 0x40000000, sinon val = 0x80000000 */
+                        Val = 0x40000000;
+                        Delay = 2112000;
+                        LUT7[0]=Val;
+                        LUT7[1]=Delay;
+                        pvPut(LUT7);
+
+/* LUT8  2880000 = 30 ms */
+/* si delay > 20 ms alors val = 0x40000000, sinon val = 0x80000000 */
+                        Val = 0x40000000;
+                        Delay = 2880000;
+                        LUT8[0]=Val;
+                        LUT8[1]=Delay;
+                        pvPut(LUT8);
+              printf(" Fin Initialisation des tables \n");
+
+/*                  INIT = 0;
+                  pvPut(INIT); */
+              
+                }state suite_init
+              } /*  fin state init_tables */ 
+
+  
+	state suite_init
+		{
+	    	  when (delay(1)) {
+ /*                 printf("Suite (nouvelle lecture) \n");*/
+                  INIT = 0;
+                  pvPut(INIT);
+
+                  } state init_tables
+		}/*  fin state suite_init */
+
+} /* fin state set ss2 */
+
+
+
